@@ -1,0 +1,31 @@
+# -------------------- Passenger Node.js Configuration --------------------
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION BEGIN
+RewriteBase /
+
+PassengerAppRoot "/home5/makseb/api-statistics.makseb.fr"
+PassengerBaseURI "/"
+PassengerNodejs "/home5/makseb/nodevenv/api-statistics.makseb.fr/20/bin/node"
+PassengerAppType node
+PassengerStartupFile app.js
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION END
+
+# -------------------- Force HTTPS --------------------
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{HTTPS} off
+  RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</IfModule>
+
+# -------------------- CORS Headers for Static Files (optional) --------------------
+<IfModule mod_headers.c>
+  Header set Access-Control-Allow-Origin "*"
+  Header set Access-Control-Allow-Methods "GET, POST, OPTIONS, PUT, PATCH, DELETE"
+  Header set Access-Control-Allow-Headers "Content-Type, Authorization"
+</IfModule>
+
+# -------------------- Fallback for 500 / Errors --------------------
+ErrorDocument 500 "Internal Server Error. Please try again later."
+ErrorDocument 404 /index.html
+
+# -------------------- Optional: Disable directory listing --------------------
+Options -Indexes
