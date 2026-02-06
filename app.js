@@ -111,6 +111,17 @@ app.get('/images', (req, res) => {
 // });
 
 
+// Render Keep-Alive Endpoint
+// Used to prevent Render from putting the server to sleep
+// External services like UptimeRobot can ping this endpoint every 10 minutes
+app.get('/heartbeat', (req, res) => {
+  res.status(200).json({ 
+    status: 'alive', 
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
+
 
 const PORT = 8002;
 

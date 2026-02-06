@@ -1,0 +1,1645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Stats API Documentation</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #1f2937;
+            --secondary: #111827;
+            --accent: #f97316;
+            --text: #f3f4f6;
+            --text-muted: #d1d5db;
+            --border: #374151;
+            --code-bg: #0f172a;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--primary);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: var(--secondary);
+            border-right: 1px solid var(--border);
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            padding: 24px 0;
+        }
+
+        .sidebar-header {
+            padding: 0 24px 24px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 24px;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--accent);
+            margin-bottom: 8px;
+        }
+
+        .api-version {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .nav-section {
+            margin-bottom: 24px;
+        }
+
+        .nav-section-title {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            padding: 12px 24px;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-link {
+            display: block;
+            padding: 10px 24px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 14px;
+            border-left: 3px solid transparent;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .nav-link:hover {
+            color: var(--accent);
+            background: rgba(249, 115, 22, 0.1);
+            border-left-color: var(--accent);
+        }
+
+        .nav-link.active {
+            color: var(--accent);
+            background: rgba(249, 115, 22, 0.15);
+            border-left-color: var(--accent);
+        }
+
+        /* Main Content */
+        .main {
+            overflow-y: auto;
+            padding: 48px;
+        }
+
+        .header {
+            margin-bottom: 48px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 32px;
+        }
+
+        .header h1 {
+            font-size: 42px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .header p {
+            font-size: 16px;
+            color: var(--text-muted);
+            max-width: 600px;
+        }
+
+        .section {
+            margin-bottom: 64px;
+            scroll-margin-top: 80px;
+        }
+
+        .section-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            color: var(--text);
+            border-left: 4px solid var(--accent);
+            padding-left: 16px;
+        }
+
+        .endpoint {
+            background: var(--secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+            transition: border-color 0.2s;
+        }
+
+        .endpoint:hover {
+            border-color: var(--accent);
+        }
+
+        .endpoint-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .method {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .method.post {
+            background: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+        }
+
+        .method.get {
+            background: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+        }
+
+        .method.put {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fbbf24;
+        }
+
+        .method.delete {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+        }
+
+        .endpoint-path {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            color: var(--accent);
+            flex: 1;
+            word-break: break-all;
+        }
+
+        .endpoint-description {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .params-section {
+            margin-bottom: 20px;
+        }
+
+        .params-title {
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            color: var(--text);
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .params-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .params-table thead {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .params-table th {
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .params-table td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .param-name {
+            font-family: monospace;
+            color: var(--accent);
+            font-weight: 500;
+        }
+
+        .param-type {
+            background: rgba(249, 115, 22, 0.15);
+            color: #fed7aa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .required {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+        }
+
+        .optional {
+            background: rgba(148, 163, 184, 0.2);
+            color: #cbd5e1;
+        }
+
+        .code-block {
+            background: var(--code-bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 16px;
+            margin-bottom: 16px;
+            overflow-x: auto;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .code-block pre {
+            margin: 0;
+        }
+
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            color: var(--text);
+        }
+
+        .hljs {
+            background: transparent !important;
+            color: var(--text) !important;
+        }
+
+        .response-box {
+            background: var(--code-bg);
+            border-left: 4px solid var(--success);
+            border-radius: 4px;
+            padding: 16px;
+            margin-top: 12px;
+        }
+
+        .response-box.error {
+            border-left-color: var(--error);
+        }
+
+        .response-label {
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            color: var(--text-muted);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .badge.success {
+            background: rgba(16, 185, 129, 0.2);
+            color: #6ee7b7;
+        }
+
+        .badge.error {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+        }
+
+        .status-codes {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .status-code {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border);
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        .status-code-number {
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 4px;
+        }
+
+        .status-code-desc {
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tab {
+            padding: 12px 16px;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .tab:hover {
+            color: var(--text);
+        }
+
+        .tab.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                position: sticky;
+                top: 0;
+                height: auto;
+                max-height: 60px;
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+                display: flex;
+                overflow-x: auto;
+                padding: 12px 24px;
+            }
+
+            .sidebar-header {
+                padding: 0;
+                border: none;
+                margin: 0;
+            }
+
+            .nav-section {
+                display: flex;
+                gap: 24px;
+                margin: 0;
+            }
+
+            .nav-section-title {
+                display: none;
+            }
+
+            .nav-link {
+                padding: 0;
+                border: none;
+            }
+
+            .main {
+                padding: 32px;
+            }
+
+            .header h1 {
+                font-size: 32px;
+            }
+
+            .section-title {
+                font-size: 22px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .main {
+                padding: 16px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .section-title {
+                font-size: 18px;
+            }
+
+            .endpoint {
+                padding: 16px;
+            }
+
+            .endpoint-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .params-table {
+                font-size: 12px;
+            }
+
+            .params-table th,
+            .params-table td {
+                padding: 8px;
+            }
+        }
+
+        /* Copy button */
+        .copy-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .code-block:hover .copy-btn {
+            opacity: 1;
+        }
+
+        .copy-btn:hover {
+            background: #ea580c;
+        }
+
+        .back-to-top {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 48px;
+            height: 48px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 20px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4);
+        }
+
+        .back-to-top:hover {
+            background: #ea580c;
+            transform: translateY(-4px);
+            box-shadow: 0 6px 16px rgba(249, 115, 22, 0.5);
+        }
+
+        .back-to-top.visible {
+            display: flex;
+        }
+
+        .toc {
+            background: var(--secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 32px;
+        }
+
+        .toc-title {
+            font-weight: 600;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+
+        .toc-list {
+            list-style: none;
+        }
+
+        .toc-list li {
+            margin-bottom: 8px;
+        }
+
+        .toc-list a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 13px;
+            transition: color 0.2s;
+        }
+
+        .toc-list a:hover {
+            color: var(--accent);
+        }
+
+        .code-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            display: block;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .feature-list {
+            list-style: none;
+            margin-bottom: 20px;
+        }
+
+        .feature-list li {
+            padding: 8px 0;
+            padding-left: 24px;
+            position: relative;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .feature-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--success);
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar Navigation -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">📊 Live Stats</div>
+                <div class="api-version">API v1.0</div>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Getting Started</div>
+                <a class="nav-link active" onclick="scrollToSection('overview')">Overview</a>
+                <a class="nav-link" onclick="scrollToSection('authentication')">Authentication</a>
+                <a class="nav-link" onclick="scrollToSection('responses')">Responses</a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Endpoints</div>
+                <a class="nav-link" onclick="scrollToSection('sales')">Sales & Transactions</a>
+                <a class="nav-link" onclick="scrollToSection('email')">Email</a>
+                <a class="nav-link" onclick="scrollToSection('data')">Data Retrieval</a>
+                <a class="nav-link" onclick="scrollToSection('store')">Store Management</a>
+                <a class="nav-link" onclick="scrollToSection('sync')">Category Sync</a>
+                <a class="nav-link" onclick="scrollToSection('tickets')">Ticket Display</a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Resources</div>
+                <a class="nav-link" onclick="scrollToSection('heartbeat')">Keep-Alive Heartbeat</a>
+                <a class="nav-link" onclick="scrollToSection('errors')">Error Handling</a>
+                <a class="nav-link" onclick="scrollToSection('examples')">Code Examples</a>
+                <a class="nav-link" onclick="scrollToSection('database')">Database</a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main">
+            <!-- Header -->
+            <div class="header" id="overview">
+                <h1>Live Stats API</h1>
+                <p>Comprehensive REST API for restaurant transaction management, ticket generation, and sales analytics. Build powerful integrations with Makseb's restaurant management platform.</p>
+            </div>
+
+            <!-- Table of Contents -->
+            <div class="toc">
+                <div class="toc-title">Quick Navigation</div>
+                <ul class="toc-list">
+                    <li><a href="#overview">Overview</a></li>
+                    <li><a href="#authentication">Authentication</a></li>
+                    <li><a href="#responses">Response Format</a></li>
+                    <li><a href="#sales">Sales & Transactions</a></li>
+                    <li><a href="#email">Email Endpoints</a></li>
+                    <li><a href="#data">Data Retrieval</a></li>
+                    <li><a href="#store">Store Management</a></li>
+                    <li><a href="#sync">Category Synchronization</a></li>
+                    <li><a href="#tickets">Ticket Display</a></li>
+                    <li><a href="#heartbeat">Keep-Alive Heartbeat</a></li>
+                    <li><a href="#errors">Error Handling</a></li>
+                    <li><a href="#examples">Code Examples</a></li>
+                    <li><a href="#database">Database Reference</a></li>
+                </ul>
+            </div>
+
+            <!-- Authentication Section -->
+            <div class="section" id="authentication">
+                <h2 class="section-title">Authentication</h2>
+                <p style="margin-bottom: 20px; color: var(--text-muted);">
+                    Most endpoints do not require authentication. Where authentication is needed, include your access token in the Authorization header.
+                </p>
+                <div class="code-block">
+                    <code>Authorization: Bearer YOUR_ACCESS_TOKEN</code>
+                </div>
+            </div>
+
+            <!-- Response Format Section -->
+            <div class="section" id="responses">
+                <h2 class="section-title">Response Format</h2>
+                
+                <h3 style="margin-bottom: 16px; font-size: 16px; color: var(--text);">Success Response</h3>
+                <div class="code-block">
+                    <pre><code class="language-json">{
+  "status": 200,
+  "data": { },
+  "message": "Operation completed successfully"
+}</code></pre>
+                </div>
+
+                <h3 style="margin-bottom: 16px; font-size: 16px; color: var(--text);">Error Response</h3>
+                <div class="code-block">
+                    <pre><code class="language-json">{
+  "status": 500,
+  "error": "Internal Server Error",
+  "message": "Detailed error message"
+}</code></pre>
+                </div>
+
+                <h3 style="margin-bottom: 16px; font-size: 16px; color: var(--text); margin-top: 24px;">HTTP Status Codes</h3>
+                <div class="status-codes">
+                    <div class="status-code">
+                        <div class="status-code-number">200</div>
+                        <div class="status-code-desc">OK - Success</div>
+                    </div>
+                    <div class="status-code">
+                        <div class="status-code-number">201</div>
+                        <div class="status-code-desc">Created</div>
+                    </div>
+                    <div class="status-code">
+                        <div class="status-code-number">400</div>
+                        <div class="status-code-desc">Bad Request</div>
+                    </div>
+                    <div class="status-code">
+                        <div class="status-code-number">404</div>
+                        <div class="status-code-desc">Not Found</div>
+                    </div>
+                    <div class="status-code">
+                        <div class="status-code-number">500</div>
+                        <div class="status-code-desc">Server Error</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sales & Transactions -->
+            <div class="section" id="sales">
+                <h2 class="section-title">Sales & Transactions</h2>
+
+                <!-- Update Live Stats -->
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method post">POST</span>
+                        <span class="endpoint-path">/update-live-stats</span>
+                    </div>
+                    <p class="endpoint-description">Updates live statistics data for a store on a specific date.</p>
+                    <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;"><strong>Deprecated:</strong> Previously <code style="color: var(--accent);">/Update3</code></p>
+                    
+                    <div class="params-title">Request Body</div>
+                    <div class="code-block">
+                        <pre><code class="language-json">{
+  "IdCRM": "2435",
+  "date": "20260204",
+  "totalSales": 1234.50,
+  "itemCount": 45
+}</code></pre>
+                    </div>
+
+                    <div class="params-title">Parameters</div>
+                    <table class="params-table">
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="param-name">IdCRM</span></td>
+                                <td><span class="param-type">string</span></td>
+                                <td>Restaurant unique identifier <span class="badge required">Required</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="param-name">date</span></td>
+                                <td><span class="param-type">string</span></td>
+                                <td>Date in YYYYMMDD format <span class="badge required">Required</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="params-title" style="margin-top: 20px;">Response</div>
+                    <div class="response-box">
+                        <div class="response-label">200 OK</div>
+                        <div class="code-block" style="margin-bottom: 0;">
+                            <pre><code class="language-json">{
+  "status": 200,
+  "message": "Statistics updated successfully"
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Update Transaction Data -->
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method post">POST</span>
+                        <span class="endpoint-path">/update-transaction-data</span>
+                    </div>
+                    <p class="endpoint-description">Records and updates transaction data for a specific date.</p>
+                    <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;"><strong>Deprecated:</strong> Previously <code style="color: var(--accent);">/Update4</code></p>
+                    
+                    <div class="params-title">Request Body</div>
+                    <div class="code-block">
+                        <pre><code class="language-json">{
+  "IdCRM": "2435",
+  "date": "20260204",
+  "transactions": [
+    {
+      "transactionId": "TR001",
+      "amount": 45.50,
+      "timestamp": "15:30"
+    }
+  ]
+}</code></pre>
+                    </div>
+
+                    <div class="status-codes">
+                        <div class="status-code">
+                            <div class="status-code-number">200</div>
+                            <div class="status-code-desc">Success</div>
+                        </div>
+                        <div class="status-code">
+                            <div class="status-code-number">500</div>
+                            <div class="status-code-desc">Server Error</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Update Ticket -->
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method post">POST</span>
+                        <span class="endpoint-path">/update-ticket</span>
+                    </div>
+                    <p class="endpoint-description">Creates or updates a ticket record. Does not update if ticket already exists.</p>
+                    <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;"><strong>Deprecated:</strong> Previously <code style="color: var(--accent);">/UpdateTiquer</code></p>
+                    
+                    <div class="params-title">Request Body</div>
+                    <div class="code-block">
+                        <pre><code class="language-json">{
+  "IdCRM": "2435",
+  "Date": "20251213",
+  "idTiquer": "30",
+  "HeureTicket": "15:21",
+  "TTC": 51.49,
+  "Menu": [
+    {
+      "NameProduct": "MENU SANDWICH",
+      "TTC": 0,
+      "QtyProduct": 1,
+      "Sup": [
+        {
+          "NameProduct": "MENU CHICKEN TANDOORI",
+          "QtyProduct": 1,
+          "TTC": 8.9
+        }
+      ]
+    }
+  ]
+}</code></pre>
+                    </div>
+
+                    <div class="params-title">Key Fields</div>
+                    <table class="params-table">
+                        <thead>
+                            <tr>
+                                <th>Field</th>
+                                <th>Type</th>
+                                <th>Required</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="param-name">IdCRM</span></td>
+                                <td><span class="param-type">string</span></td>
+                                <td><span class="badge required">Yes</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="param-name">Date</span></td>
+                                <td><span class="param-type">string</span></td>
+                                <td><span class="badge required">Yes</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="param-name">idTiquer</span></td>
+                                <td><span class="param-type">string</span></td>
+                                <td><span class="badge required">Yes</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="param-name">Menu</span></td>
+                                <td><span class="param-type">array</span></td>
+                                <td><span class="badge required">Yes</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="param-name">ChiffreAffaire</span></td>
+                                <td><span class="param-type">object</span></td>
+                                <td><span class="badge optional">No</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Email -->
+            <div class="section" id="email">
+                <h2 class="section-title">Email Endpoints</h2>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method post">POST</span>
+                        <span class="endpoint-path">/send-welcome-email</span>
+                    </div>
+                    <p class="endpoint-description">Sends a welcome email with account credentials and ticket link.</p>
+                    <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;"><strong>Deprecated:</strong> Previously <code style="color: var(--accent);">/sendemail</code></p>
+                    
+                    <div class="params-title">Request Body</div>
+                    <div class="code-block">
+                        <pre><code class="language-json">{
+  "email": "customer@example.com",
+  "name": "Restaurant Name",
+  "lien": "https://example.com/ticket/123"
+}</code></pre>
+                    </div>
+
+                    <div class="params-title">Parameters</div>
+                    <table class="params-table">
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Required</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="param-name">email</span></td>
+                                <td><span class="param-type">string</span></td>
+                                <td><span class="badge required">Yes</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="param-name">name</span></td>
+                                <td><span class="param-type">string</span></td>
+                                <td><span class="badge required">Yes</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="param-name">lien</span></td>
+                                <td><span class="param-type">string</span></td>
+                                <td><span class="badge required">Yes</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="params-title" style="margin-top: 20px;">Response</div>
+                    <div class="response-box">
+                        <div class="response-label">200 OK</div>
+                        <div class="code-block" style="margin-bottom: 0;">
+                            <pre><code class="language-json">{
+  "message": "Email sent successfully."
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method post">POST</span>
+                        <span class="endpoint-path">/send-pdf-email</span>
+                    </div>
+                    <p class="endpoint-description">Sends an email with PDF attachment or PDF URL.</p>
+                    <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;"><strong>Deprecated:</strong> Previously <code style="color: var(--accent);">/sendPdfInemail</code></p>
+                    
+                    <div class="params-title">Request Body</div>
+                    <div class="code-block">
+                        <pre><code class="language-json">{
+  "email": "customer@example.com",
+  "name": "Restaurant Name",
+  "pdf": "base64-pdf-content-or-url"
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Retrieval -->
+            <div class="section" id="data">
+                <h2 class="section-title">Data Retrieval</h2>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method get">GET</span>
+                        <span class="endpoint-path">/get-sales-summary</span>
+                    </div>
+                    <p class="endpoint-description">Retrieves aggregated sales statistics for a store within a date range.</p>
+                    <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;"><strong>Deprecated:</strong> Previously <code style="color: var(--accent);">/SumData</code></p>
+                    
+                    <div class="params-title">Query Parameters</div>
+                    <table class="params-table">
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Required</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="param-name">idCRM</span></td>
+                                <td><span class="param-type">string</span></td>
+                                <td><span class="badge required">Yes</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="param-name">date1</span></td>
+                                <td><span class="param-type">string</span></td>
+                                <td><span class="badge required">Yes</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="param-name">date2</span></td>
+                                <td><span class="param-type">string</span></td>
+                                <td><span class="badge required">Yes</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <span class="code-label">Example Request</span>
+                    <div class="code-block">
+                        <pre><code>GET /get-sales-summary?idCRM=2435&date1=20260101&date2=20260228</code></pre>
+                    </div>
+
+                    <div class="params-title">Response</div>
+                    <div class="response-box">
+                        <div class="response-label">200 OK</div>
+                        <div class="code-block" style="margin-bottom: 0;">
+                            <pre><code class="language-json">[
+  {
+    "IdCRM": "2435",
+    "date": "20260101",
+    "totalSales": 1234.50,
+    "itemCount": 45
+  }
+]</code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method get">GET</span>
+                        <span class="endpoint-path">/get-tickets</span>
+                    </div>
+                    <p class="endpoint-description">Retrieves all tickets for a store within a date range.</p>
+                    <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;"><strong>Deprecated:</strong> Previously <code style="color: var(--accent);">/GetTiquer</code></p>
+                    
+                    <span class="code-label">Example Request</span>
+                    <div class="code-block">
+                        <pre><code>GET /get-tickets?idCRM=2435&date1=20260101&date2=20260131</code></pre>
+                    </div>
+
+                    <div class="params-title">Response</div>
+                    <div class="response-box">
+                        <div class="response-label">200 OK - Array of Tickets</div>
+                        <div class="code-block" style="margin-bottom: 0;">
+                            <pre><code class="language-json">[
+  {
+    "_id": "693d765ffba51e4799b4db3e",
+    "idTiquer": "30",
+    "Date": "20251213",
+    "HeureTicket": "15:21",
+    "TTC": 51.49,
+    "Menu": [...]
+  }
+]</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Store Management -->
+            <div class="section" id="store">
+                <h2 class="section-title">Store Management</h2>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method post">POST</span>
+                        <span class="endpoint-path">/update-store-status</span>
+                    </div>
+                    <p class="endpoint-description">Updates store status and last interaction timestamp.</p>
+                    <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;"><strong>Deprecated:</strong> Previously <code style="color: var(--accent);">/statusStores</code></p>
+                    
+                    <div class="params-title">Request Body</div>
+                    <div class="code-block">
+                        <pre><code class="language-json">{
+  "IdCRM": "2435",
+  "LastCommand": "REBOOT",
+  "Status": "Activer"
+}</code></pre>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method get">GET</span>
+                        <span class="endpoint-path">/get-license/:idCRM</span>
+                    </div>
+                    <p class="endpoint-description">Checks if store has active license.</p>
+                    <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;"><strong>Deprecated:</strong> Previously <code style="color: var(--accent);">/GetLicence/:idCRM</code></p>
+                    
+                    <span class="code-label">Example Request</span>
+                    <div class="code-block">
+                        <pre><code>GET /get-license/2435</code></pre>
+                    </div>
+
+                    <div class="params-title">Response</div>
+                    <div class="response-box">
+                        <div class="response-label">200 OK</div>
+                        <div class="code-block" style="margin-bottom: 0;">
+                            <pre><code class="language-json">{
+  "hasLicense": "EMakseb"
+}</code></pre>
+                        </div>
+                    </div>
+
+                    <div style="color: var(--text-muted); font-size: 13px; margin-top: 12px;">
+                        <strong>Possible Values:</strong><br>
+                        • <code style="color: var(--accent);">EMakseb</code> - License enabled<br>
+                        • <code style="color: var(--accent);">MaksebD</code> - License disabled/demo
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method get">GET</span>
+                        <span class="endpoint-path">/get-store-name/:idCRM</span>
+                    </div>
+                    <p class="endpoint-description">Retrieves store/restaurant information.</p>
+                    <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;"><strong>Deprecated:</strong> Previously <code style="color: var(--accent);">/GetBaseName/:idCRM</code></p>
+                    
+                    <span class="code-label">Example Request</span>
+                    <div class="code-block">
+                        <pre><code>GET /get-store-name/2435</code></pre>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method get">GET</span>
+                        <span class="endpoint-path">/update-license/:idCRM/:action</span>
+                    </div>
+                    <p class="endpoint-description">Updates store license status.</p>
+                    <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;"><strong>Deprecated:</strong> Previously <code style="color: var(--accent);">/UpdateLicence/:idCRM/:action</code></p>
+                    
+                    <span class="code-label">Example Request</span>
+                    <div class="code-block">
+                        <pre><code>GET /update-license/2435/Enable</code></pre>
+                    </div>
+                    <div style="color: var(--text-muted); font-size: 13px; margin-top: 12px;">
+                        <strong>Action Values:</strong><br>
+                        • <code style="color: var(--accent);">Enable</code> - Activate license<br>
+                        • <code style="color: var(--accent);">Disable</code> - Deactivate license
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category Sync -->
+            <div class="section" id="sync">
+                <h2 class="section-title">Category & Image Synchronization</h2>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method post">POST</span>
+                        <span class="endpoint-path">/sync-categories-to-folder</span>
+                    </div>
+                    <p class="endpoint-description">Synchronizes product categories to local folder structure.</p>
+                    <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;"><strong>Deprecated:</strong> Previously <code style="color: var(--accent);">/updateAllCatInFolder</code></p>
+                    
+                    <div class="params-title">Request Body</div>
+                    <div class="code-block">
+                        <pre><code class="language-json">{
+  "idCRM": "2435",
+  "categories": [
+    {
+      "name": "Sandwiches",
+      "id": "CAT001"
+    }
+  ]
+}</code></pre>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method get">GET</span>
+                        <span class="endpoint-path">/get-product-images</span>
+                    </div>
+                    <p class="endpoint-description">Retrieves product images and category information.</p>
+                    <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;"><strong>Deprecated:</strong> Previously <code style="color: var(--accent);">/GetImages</code></p>
+                    
+                    <div class="params-title">Query Parameters</div>
+                    <table class="params-table">
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Required</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="param-name">idCRM</span></td>
+                                <td><span class="param-type">string</span></td>
+                                <td><span class="badge optional">No</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="param-name">category</span></td>
+                                <td><span class="param-type">string</span></td>
+                                <td><span class="badge optional">No</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Ticket Display -->
+            <div class="section" id="tickets">
+                <h2 class="section-title">Ticket Display</h2>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method get">GET</span>
+                        <span class="endpoint-path">/display-ticket-receipt/:idCRM/:date/:idTiquer</span>
+                    </div>
+                    <p class="endpoint-description">Displays individual ticket receipt with PDF download capability. <span class="badge success">PRIMARY ENDPOINT</span></p>
+                    <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;"><strong>Deprecated:</strong> Previously <code style="color: var(--accent);">/AfficheTicketResto/:idCRM/:date/:idTiquer</code></p>
+                    
+                    <div class="params-title">Path Parameters</div>
+                    <table class="params-table">
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="param-name">idCRM</span></td>
+                                <td><span class="param-type">string</span></td>
+                                <td>Restaurant identifier <span class="badge required">Required</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="param-name">date</span></td>
+                                <td><span class="param-type">string</span></td>
+                                <td>Ticket date (YYYYMMDD format) <span class="badge required">Required</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="param-name">idTiquer</span></td>
+                                <td><span class="param-type">string</span></td>
+                                <td>Ticket unique identifier <span class="badge required">Required</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <span class="code-label">Example Request</span>
+                    <div class="code-block">
+                        <pre><code>GET /display-ticket-receipt/2435/20251213/30</code></pre>
+                    </div>
+
+                    <div class="params-title">Response</div>
+                    <div class="response-box">
+                        <div class="response-label">200 OK - HTML Page</div>
+                        <p style="font-size: 13px; color: var(--text-muted); margin: 8px 0;">
+                            Returns formatted HTML ticket with embedded PDF download button
+                        </p>
+                    </div>
+
+                    <h3 style="margin-top: 24px; margin-bottom: 12px; font-size: 14px; color: var(--text); font-weight: 600;">Features</h3>
+                    <ul class="feature-list">
+                        <li>Professional receipt-style layout (80x200mm when printed)</li>
+                        <li>Monospace Dina font for authentic ticket appearance</li>
+                        <li>Client-side PDF generation (no server load)</li>
+                        <li>Sticky floating PDF download button</li>
+                        <li>Mobile responsive design</li>
+                        <li>Complete menu item details with supplements and exclusions</li>
+                        <li>Payment method and totals display</li>
+                    </ul>
+
+                    <h3 style="margin-top: 24px; margin-bottom: 12px; font-size: 14px; color: var(--text); font-weight: 600;">Unique Identification</h3>
+                    <div style="background: rgba(59, 130, 246, 0.1); border-left: 3px solid #3b82f6; padding: 12px 16px; border-radius: 4px; font-size: 13px; color: var(--text-muted);">
+                        Tickets are uniquely identified by combining three fields:
+                        <ul style="list-style: none; padding: 8px 0 0 0; margin: 0;">
+                            <li style="padding: 4px 0;"><strong style="color: var(--text);">idCRM</strong> - Restaurant identifier</li>
+                            <li style="padding: 4px 0;"><strong style="color: var(--text);">Date</strong> - Ticket date (YYYYMMDD)</li>
+                            <li style="padding: 4px 0;"><strong style="color: var(--text);">idTiquer</strong> - Ticket number</li>
+                        </ul>
+                    </div>
+
+                    <div class="status-codes" style="margin-top: 20px;">
+                        <div class="status-code">
+                            <div class="status-code-number">200</div>
+                            <div class="status-code-desc">HTML page rendered</div>
+                        </div>
+                        <div class="status-code">
+                            <div class="status-code-number">404</div>
+                            <div class="status-code-desc">Ticket not found</div>
+                        </div>
+                        <div class="status-code">
+                            <div class="status-code-number">500</div>
+                            <div class="status-code-desc">Server error</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method get">GET</span>
+                        <span class="endpoint-path">/display-tickets</span>
+                    </div>
+                    <p class="endpoint-description">Generates and displays HTML formatted tickets list.</p>
+                    <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;"><strong>Deprecated:</strong> Previously <code style="color: var(--accent);">/AfficheTicket</code></p>
+                    
+                    <div class="params-title">Query Parameters</div>
+                    <table class="params-table">
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Required</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="param-name">idCRM</span></td>
+                                <td><span class="param-type">string</span></td>
+                                <td><span class="badge required">Yes</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="param-name">date1</span></td>
+                                <td><span class="param-type">string</span></td>
+                                <td><span class="badge required">Yes</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="param-name">date2</span></td>
+                                <td><span class="param-type">string</span></td>
+                                <td><span class="badge required">Yes</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method get">GET</span>
+                        <span class="endpoint-path">/display-tickets-detailed</span>
+                    </div>
+                    <p class="endpoint-description">Displays detailed formatted tickets with full information breakdown.</p>
+                    <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;"><strong>Deprecated:</strong> Previously <code style="color: var(--accent);">/AfficheTicket2</code></p>
+                </div>
+            </div>
+
+            <!-- Keep-Alive Heartbeat -->
+            <div class="section" id="heartbeat">
+                <h2 class="section-title">Keep-Alive Heartbeat</h2>
+                
+                <p style="margin-bottom: 20px; color: var(--text-muted);">
+                    This API is hosted on Render, which puts free-tier services to sleep after 15 minutes of inactivity. Use the heartbeat endpoint with an external monitoring service to keep your server awake 24/7.
+                </p>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method get">GET</span>
+                        <span class="endpoint-path">/heartbeat</span>
+                    </div>
+                    <p class="endpoint-description">Lightweight endpoint for monitoring service pings to keep server awake.</p>
+
+                    <span class="code-label">Example Request</span>
+                    <div class="code-block">
+                        <pre><code>GET https://four3-96-aasg.onrender.com/heartbeat</code></pre>
+                    </div>
+
+                    <div class="params-title">Response</div>
+                    <div class="response-box">
+                        <div class="response-label">200 OK</div>
+                        <div class="code-block" style="margin-bottom: 0;">
+                            <pre><code class="language-json">{
+  "status": "alive",
+  "timestamp": "2026-02-06T15:30:45.123Z",
+  "uptime": 3600
+}</code></pre>
+                        </div>
+                    </div>
+
+                    <h3 style="margin-top: 24px; margin-bottom: 12px; font-size: 14px; color: var(--text); font-weight: 600;">Keep-Alive Setup</h3>
+                    
+                    <p style="margin-bottom: 12px; color: var(--text-muted); font-size: 13px;">
+                        Use an external monitoring service to ping this endpoint every 5-10 minutes:
+                    </p>
+
+                    <div style="background: rgba(16, 185, 129, 0.1); border-left: 3px solid #10b981; padding: 16px; border-radius: 4px; margin-bottom: 16px;">
+                        <p style="font-size: 13px; color: var(--text-muted); margin: 0;">
+                            <strong style="color: var(--text);">Recommended:</strong> <a href="https://uptimerobot.com" style="color: #34d399; text-decoration: none;">UptimeRobot</a> (Free, checks every 5 minutes)
+                        </p>
+                    </div>
+
+                    <h4 style="margin-bottom: 12px; font-size: 13px; color: var(--text); font-weight: 600;">Alternative Services</h4>
+                    <ul class="feature-list">
+                        <li><a href="https://www.freshping.io" style="color: #f97316; text-decoration: none;">Freshping</a> - Free uptime monitoring</li>
+                        <li><a href="https://monitoring.express" style="color: #f97316; text-decoration: none;">Monitoring.express</a> - Simple free checks</li>
+                        <li>GitHub Actions - Free with your repository</li>
+                        <li>Custom cron jobs - Self-hosted solution</li>
+                    </ul>
+
+                    <h4 style="margin-top: 20px; margin-bottom: 12px; font-size: 13px; color: var(--text); font-weight: 600;">cURL Example</h4>
+                    <div class="code-block">
+                        <pre><code class="language-bash">curl https://four3-96-aasg.onrender.com/heartbeat</code></pre>
+                    </div>
+
+                    <div class="status-codes">
+                        <div class="status-code">
+                            <div class="status-code-number">200</div>
+                            <div class="status-code-desc">Server is running</div>
+                        </div>
+                        <div class="status-code">
+                            <div class="status-code-number">500</div>
+                            <div class="status-code-desc">Server encountered an error</div>
+                        </div>
+                    </div>
+
+                    <div style="background: rgba(249, 115, 22, 0.1); border-left: 3px solid var(--accent); padding: 12px 16px; border-radius: 4px; font-size: 12px; color: var(--text-muted); margin-top: 16px;">
+                        <strong style="color: var(--text);">Note:</strong> No authentication required. This endpoint is kept simple and lightweight for external monitoring services.
+                    </div>
+                </div>
+
+                <h3 style="margin-top: 32px; margin-bottom: 16px; font-size: 16px; color: var(--text);">Why Keep-Alive is Needed</h3>
+                <p style="color: var(--text-muted); margin-bottom: 16px; font-size: 13px;">
+                    Render's free tier spins down servers after 15 minutes of inactivity. Without a keep-alive service:
+                </p>
+                <ul class="feature-list">
+                    <li>Server goes to sleep automatically after 15 minutes</li>
+                    <li>First request after sleep takes 30+ seconds (server restart)</li>
+                    <li>Subsequent requests are fast again</li>
+                    <li>This cycle repeats every 15 minutes of inactivity</li>
+                </ul>
+
+                <p style="color: var(--text-muted); margin-top: 16px; font-size: 13px;">
+                    <strong>Solution:</strong> External service pings heartbeat every 5-10 minutes → Server stays awake → All requests respond in <100ms
+                </p>
+            </div>
+
+            <!-- Error Handling -->
+            <div class="section" id="errors">
+                <h2 class="section-title">Error Handling</h2>
+
+                <table class="params-table">
+                    <thead>
+                        <tr>
+                            <th>Error</th>
+                            <th>Cause</th>
+                            <th>Solution</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="param-name">Ticket not found</span></td>
+                            <td>Invalid idCRM, date, or idTiquer</td>
+                            <td>Verify all three parameters match database records</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">Livestats not found</span></td>
+                            <td>No data in date range</td>
+                            <td>Check date format (YYYYMMDD) and range validity</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">E-mail sending error</span></td>
+                            <td>SMTP configuration issue</td>
+                            <td>Verify email address and lien parameter</td>
+                        </tr>
+                        <tr>
+                            <td><span class="param-name">Missing required parameters</span></td>
+                            <td>Incomplete request</td>
+                            <td>Review endpoint documentation for required fields</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Examples -->
+            <div class="section" id="examples">
+                <h2 class="section-title">Code Examples</h2>
+
+                <h3 style="margin-bottom: 16px; font-size: 16px; color: var(--text);">JavaScript / Node.js</h3>
+
+                <span class="code-label">Get Tickets</span>
+                <div class="code-block">
+                    <pre><code class="language-javascript">const fetch = require('node-fetch');
+
+async function getTickets(idCRM, startDate, endDate) {
+  const url = `https://four3-96-aasg.onrender.com/get-tickets?idCRM=${idCRM}&date1=${startDate}&date2=${endDate}`;
+  
+  try {
+    const response = await fetch(url);
+    const tickets = await response.json();
+    console.log(tickets);
+    return tickets;
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
+getTickets('2435', '20260101', '20260131');</code></pre>
+                </div>
+
+                <span class="code-label">Create Ticket</span>
+                <div class="code-block">
+                    <pre><code class="language-javascript">async function createTicket(ticketData) {
+  const url = 'https://four3-96-aasg.onrender.com/update-ticket';
+  
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(ticketData)
+  });
+  
+  return response.status === 200;
+}</code></pre>
+                </div>
+
+                <h3 style="margin: 32px 0 16px; font-size: 16px; color: var(--text);">cURL</h3>
+
+                <span class="code-label">Get Sales Summary</span>
+                <div class="code-block">
+                    <pre><code class="language-bash">curl -X GET "https://four3-96-aasg.onrender.com/get-sales-summary?idCRM=2435&date1=20260101&date2=20260228"</code></pre>
+                </div>
+
+                <span class="code-label">Display Ticket Receipt</span>
+                <div class="code-block">
+                    <pre><code class="language-bash">curl "https://four3-96-aasg.onrender.com/display-ticket-receipt/2435/20251213/30" -o ticket.html</code></pre>
+                </div>
+
+                <span class="code-label">Send Welcome Email</span>
+                <div class="code-block">
+                    <pre><code class="language-bash">curl -X POST https://four3-96-aasg.onrender.com/send-welcome-email \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "customer@example.com",
+    "name": "My Restaurant",
+    "lien": "https://example.com/receipt"
+  }'</code></pre>
+                </div>
+            </div>
+
+            <!-- Database Reference -->
+            <div class="section" id="database">
+                <h2 class="section-title">Database Reference</h2>
+
+                <h3 style="margin-bottom: 16px; font-size: 16px; color: var(--text);">Tiquer Collection</h3>
+                <p style="color: var(--text-muted); margin-bottom: 12px;">Stores individual ticket records</p>
+                
+                <span class="code-label">Key Fields</span>
+                <div class="code-block">
+                    <pre><code class="language-json">{
+  "IdCRM": "2435",
+  "Date": "20251213",
+  "idTiquer": "30",
+  "HeureTicket": "15:21",
+  "TTC": 51.49,
+  "Menu": [...],
+  "ChiffreAffaire": {
+    "Total_Ht": 8.091,
+    "Total_TVA": 0.809,
+    "Total_TTC": 8.9
+  },
+  "ModePaiement": [...]
+}</code></pre>
+                </div>
+
+                <div style="background: rgba(249, 115, 22, 0.1); border-left: 3px solid var(--accent); padding: 12px 16px; border-radius: 4px; font-size: 13px; color: var(--text-muted); margin-top: 16px;">
+                    <strong style="color: var(--text);">Unique Index:</strong> {IdCRM, Date, idTiquer}
+                </div>
+
+                <h3 style="margin: 32px 0 16px; font-size: 16px; color: var(--text);">User Collection</h3>
+                <p style="color: var(--text-muted); margin-bottom: 12px;">Stores store/restaurant information and licensing</p>
+                
+                <span class="code-label">Key Fields</span>
+                <div class="code-block">
+                    <pre><code class="language-json">{
+  "idCRM": "2435",
+  "name": "MISTER GRILL",
+  "Licence": "Enable",
+  "Status": "Activer",
+  "LastCommand": "REBOOT",
+  "lastInteraction": "2026-02-06T15:30:00Z"
+}</code></pre>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div style="border-top: 1px solid var(--border); margin-top: 64px; padding-top: 32px; color: var(--text-muted); font-size: 13px;">
+                <p style="margin-bottom: 12px;">
+                    <strong>Live Stats API v1.0</strong><br>
+                    Last updated: February 2026
+                </p>
+                <p>For support, contact: <a href="mailto:commandes@makseb.fr" style="color: var(--accent); text-decoration: none;">commandes@makseb.fr</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Back to Top Button -->
+    <button class="back-to-top" onclick="scrollToTop()">↑</button>
+
+    <script>
+        // Highlight code blocks
+        hljs.highlightAll();
+
+        // Navigation
+        function scrollToSection(sectionId) {
+            const element = document.getElementById(sectionId);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                updateActiveNav(sectionId);
+            }
+        }
+
+        function updateActiveNav(sectionId) {
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+
+        // Back to top button
+        const backToTopBtn = document.querySelector('.back-to-top');
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                backToTopBtn.classList.add('visible');
+            } else {
+                backToTopBtn.classList.remove('visible');
+            }
+        });
+
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Copy to clipboard
+        document.querySelectorAll('.code-block').forEach(block => {
+            const btn = document.createElement('button');
+            btn.className = 'copy-btn';
+            btn.textContent = 'Copy';
+            btn.onclick = () => {
+                const code = block.querySelector('code').textContent;
+                navigator.clipboard.writeText(code);
+                btn.textContent = 'Copied!';
+                setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+            };
+            block.style.position = 'relative';
+            block.appendChild(btn);
+        });
+    </script>
+</body>
+</html>

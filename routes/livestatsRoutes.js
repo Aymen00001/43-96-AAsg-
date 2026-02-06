@@ -1,4 +1,5 @@
 const express = require("express");
+const path = require("path");
 const livestatsController = require("../controllers/livestatsController.js");
 const verifyToken = require("../utils/verifyToken.js");
 
@@ -7,34 +8,41 @@ const { verifyAccessToken } = verifyToken;
 
 const livestatsRoutes = express.Router();
 
-livestatsRoutes.post("/Update3", updateLivestat3);
-livestatsRoutes.post("/Update4", updateLivestat4);
-livestatsRoutes.post("/UpdateGetReglement", updateLivestatForGetReglement);
-livestatsRoutes.post("/UpdateTiquer", UpdateTiquer);
-livestatsRoutes.post("/sendemail", sendWelcomeEmail);
-livestatsRoutes.post("/sendPdfInemail", sendPdfInEmail);
+// Sales statistics endpoints
+livestatsRoutes.post("/update-live-stats", updateLivestat3);
+livestatsRoutes.post("/update-transaction-data", updateLivestat4);
+livestatsRoutes.post("/update-payment-settlement", updateLivestatForGetReglement);
+livestatsRoutes.post("/update-ticket", UpdateTiquer);
 
+// Email endpoints
+livestatsRoutes.post("/send-welcome-email", sendWelcomeEmail);
+livestatsRoutes.post("/send-pdf-email", sendPdfInEmail);
 
+// Data retrieval endpoints
+livestatsRoutes.get("/get-sales-summary", getLivestatByIdandDate);
+livestatsRoutes.get("/get-detailed-sales-summary", getLivestatByIdandDate2);
+livestatsRoutes.get("/get-tickets", getTiquerId);
 
-livestatsRoutes.get("/SumData", getLivestatByIdandDate);
-livestatsRoutes.get("/SumData2", getLivestatByIdandDate2);
+// Store management endpoints
+livestatsRoutes.post("/update-store-status", updateStatusStores);
+livestatsRoutes.get("/get-license/:idCRM", GetLicence);
+livestatsRoutes.get("/get-store-name/:idCRM", GetBaseName);
+livestatsRoutes.get("/update-license/:idCRM/:action", UpdateLicence);
+livestatsRoutes.get("/update-database/:idCRM/:action", UpdateBaseDeDonne);
 
-livestatsRoutes.get("/GetTiquer", getTiquerId);
+// Category and image synchronization endpoints
+livestatsRoutes.post("/sync-categories-to-folder", updateAllCatInUploid);
+livestatsRoutes.post("/sync-categories-to-database", updateAllCatCripteInMongo);
+livestatsRoutes.get("/get-product-images", getAllCatInUploid);
 
-livestatsRoutes.post("/statusStores", updateStatusStores);
+// Ticket display endpoints
+livestatsRoutes.get("/display-tickets", generateTicketsHTML);
+livestatsRoutes.get("/display-tickets-detailed", generateTicketsHTML2);
+livestatsRoutes.get("/display-ticket-receipt/:idCRM/:date/:idTiquer", getTicketRestoById);
 
-livestatsRoutes.get("/GetLicence/:idCRM", GetLicence);
-livestatsRoutes.get("/GetBaseName/:idCRM", GetBaseName);
-livestatsRoutes.get("/UpdateLicence/:idCRM/:action", UpdateLicence);
-livestatsRoutes.get("/UpdateBaseDeDonne/:idCRM/:action", UpdateBaseDeDonne);
-
-livestatsRoutes.post("/updateAllCatInFolder", updateAllCatInUploid);
-livestatsRoutes.post("/updateAllCatInMongobd", updateAllCatCripteInMongo);
-livestatsRoutes.get("/GetImages", getAllCatInUploid);
-
-
-livestatsRoutes.get("/AfficheTicket", generateTicketsHTML);
-livestatsRoutes.get("/AfficheTicket2", generateTicketsHTML2);
-livestatsRoutes.get("/AfficheTicketResto/:idTiquer", getTicketRestoById);
+// API Documentation
+livestatsRoutes.get("/help", (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/api-docs.html'));
+});
 
 module.exports = livestatsRoutes;

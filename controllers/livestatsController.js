@@ -27,10 +27,10 @@ const sendWelcomeEmail = (req, res) => {
       <title>Welcome Email</title>
     </head>
     <body>
-      <p>Bienvenue chez ${name} !</p>
-      <p>Veuillez trouver ci-joint votre ticket : <a href="${lien}">cliquez ici</a></p>
-      <p>Si vous avez des questions ou avez besoin d'assistance supplémentaire, n'hésitez pas à nous recontacter.</p>
-      <p>Cordialement,</p>
+      <p>Welcome to ${name}!</p>
+      <p>Please find your ticket here: <a href="${lien}">click here</a></p>
+      <p>If you have any questions or need further assistance, please don't hesitate to contact us.</p>
+      <p>Best regards,</p>
       <p>${name}</p>
     </body>
     </html>
@@ -38,16 +38,16 @@ const sendWelcomeEmail = (req, res) => {
   const mailOptions = {
     from: 'commandes@makseb.fr',
     to: email,
-    subject: 'Envoi de vos coordonnées de compte',
+    subject: 'Your Account Credentials',
     html: emailTemplate, // Set the email template as the HTML body
   };
   transporter.sendMail(mailOptions, (error, info) => {
     if (error) {
-      console.error('Erreur lors de l\'envoi de l\'e-mail:', error);
-      return res.status(500).json({ error: 'Erreur lors de l\'envoi de l\'e-mail.' });
+      console.error('Error sending email:', error);
+      return res.status(500).json({ error: 'Error sending email.' });
     } else {
     
-      return res.status(200).json({ message: 'E-mail envoyé avec succès.' });
+      return res.status(200).json({ message: 'Email sent successfully.' });
     }
   });
 };
@@ -63,10 +63,10 @@ const sendPdfInEmail = (req, res) => {
       <title>Welcome Email</title>
     </head>
     <body>
-      <p>Bienvenue chez ${name} !</p>
-      <p>Veuillez trouver ci-joint votre ticket : <a href="${lien}">cliquez ici</a></p>
-      <p>Si vous avez des questions ou avez besoin d'assistance supplémentaire, n'hésitez pas à nous recontacter.</p>
-      <p>Cordialement,</p>
+      <p>Welcome to ${name}!</p>
+      <p>Please find your ticket attached: <a href="${lien}">click here</a></p>
+      <p>If you have any questions or need further assistance, please don't hesitate to contact us.</p>
+      <p>Best regards,</p>
       <p>${name}</p>
     </body>
     </html>
@@ -74,16 +74,16 @@ const sendPdfInEmail = (req, res) => {
   const mailOptions = {
     from: 'commandes@makseb.fr',
     to: email,
-    subject: 'Envoi de vos coordonnées de compte',
+    subject: 'Your Account Credentials',
     html: emailTemplate, // Set the email template as the HTML body
   };
   transporter.sendMail(mailOptions, (error, info) => {
     if (error) {
-      console.error('Erreur lors de l\'envoi de l\'e-mail:', error);
-      return res.status(500).json({ error: 'Erreur lors de l\'envoi de l\'e-mail.' });
+      console.error('Error sending email:', error);
+      return res.status(500).json({ error: 'Error sending email.' });
     } else {
     
-      return res.status(200).json({ message: 'E-mail envoyé avec succès.' });
+      return res.status(200).json({ message: 'Email sent successfully.' });
     }
   });
 };
@@ -1087,10 +1087,12 @@ res.send(htmlContent);
 
   const getTicketRestoById = async (req, res) => {
     try {
+      const idCRM = req.params.idCRM;
+      const date = req.params.date;
       const idTiquer = req.params.idTiquer;
       const db = await connectToDatabase();
       const collection = db.collection('Tiquer');
-      const ticket = await collection.findOne({ idTiquer: idTiquer });
+      const ticket = await collection.findOne({ idCRM: idCRM, Date: date, idTiquer: idTiquer });
       
       if (!ticket) {
         return res.status(404).send('<html><body>Ticket not found</body></html>');
