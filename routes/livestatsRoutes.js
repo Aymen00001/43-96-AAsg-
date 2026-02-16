@@ -3,7 +3,7 @@ const path = require("path");
 const livestatsController = require("../controllers/livestatsController.js");
 const verifyToken = require("../utils/verifyToken.js");
 
-const {updateLivestatForGetReglement,UpdateBaseDeDonne,GetBaseName,sendPdfInEmail,sendWelcomeEmail,generateTicketsHTML2,generateTicketsHTML,getTicketRestoById,getTiquerId,UpdateTiquer,getLivestatByIdandDate2,getAllCatInUploid,updateLivestat4,updateAllCatCripteInMongo,updateAllCatInUploid, getLivestatByIdandDate,   updateLivestat3,updateStatusStores ,GetLicence ,UpdateLicence} = livestatsController;
+const {updateLivestatForGetReglement,UpdateBaseDeDonne,GetBaseName,sendPdfInEmail,sendWelcomeEmail,generateTicketsHTML2,generateTicketsHTML,getTicketRestoById,getTiquerId,UpdateTiquer,getLivestatByIdandDate2,getAllCatInUploid,updateLivestat4,updateAllCatCripteInMongo,updateAllCatInUploid, getLivestatByIdandDate,   updateLivestat3,updateStatusStores ,GetLicence ,UpdateLicence, getPaymentStatistics} = livestatsController;
 const { verifyAccessToken } = verifyToken;
 
 const livestatsRoutes = express.Router();
@@ -22,6 +22,7 @@ livestatsRoutes.post("/send-pdf-email", sendPdfInEmail);
 livestatsRoutes.get("/get-sales-summary", getLivestatByIdandDate);
 livestatsRoutes.get("/get-detailed-sales-summary", getLivestatByIdandDate2);
 livestatsRoutes.get("/get-tickets", getTiquerId);
+livestatsRoutes.get("/get-payment-statistics", getPaymentStatistics);
 
 // Store management endpoints
 livestatsRoutes.post("/update-store-status", updateStatusStores);

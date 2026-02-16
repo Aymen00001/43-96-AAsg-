@@ -228,12 +228,57 @@ const sendPdfInEmail = (req, res) => {
 
 const UpdateTiquer = async (req, res) => {
     const data = req.body;
+    
+    // Allowed payment methods
+    const ALLOWED_PAYMENT_METHODS = ['CASH', 'CARD', 'CHECK'];
 
     try {
       // Validate required fields
-      if (!data.IdCRM || !data.Date || !data.idTiquer || !data.HeureTicket) {
-        console.error("Missing required fields:", { IdCRM: data.IdCRM, Date: data.Date, idTiquer: data.idTiquer, HeureTicket: data.HeureTicket });
-        return res.status(400).json({ error: "Missing required fields: IdCRM, Date, idTiquer, HeureTicket" });
+      if (!data.IdCRM || !data.Date || !data.idTiquer || !data.HeureTicket || !data.Totals) {
+        console.error("Missing required fields:", { IdCRM: data.IdCRM, Date: data.Date, idTiquer: data.idTiquer, HeureTicket: data.HeureTicket, Totals: data.Totals });
+        return res.status(400).json({ error: "Missing required fields: IdCRM, Date, idTiquer, HeureTicket, Totals" });
+      }
+
+      // Validate Totals structure
+      if (typeof data.Totals !== 'object' || !data.Totals.Total_Ht || !data.Totals.Total_TVA || !data.Totals.Total_TTC) {
+        return res.status(400).json({ 
+          error: "Invalid Totals object. Must include Total_Ht, Total_TVA, and Total_TTC"
+        });
+      }
+
+      // Validate and normalize payment methods
+      if (data.PaymentMethods && Array.isArray(data.PaymentMethods)) {
+        let totalPaymentAmount = 0;
+        
+        // Validate each payment method
+        for (const payment of data.PaymentMethods) {
+          if (!payment.payment_method || typeof payment.amount !== 'number') {
+            return res.status(400).json({ 
+              error: "Invalid payment method format. Each payment must have 'payment_method' and 'amount'" 
+            });
+          }
+          
+          // Validate payment method is in allowed list
+          if (!ALLOWED_PAYMENT_METHODS.includes(payment.payment_method.toUpperCase())) {
+            return res.status(400).json({ 
+              error: `Invalid payment method: '${payment.payment_method}'. Allowed methods: ${ALLOWED_PAYMENT_METHODS.join(', ')}`,
+              allowed_methods: ALLOWED_PAYMENT_METHODS
+            });
+          }
+          
+          totalPaymentAmount += payment.amount;
+        }
+        
+        // Validate that payment amounts sum to ticket total
+        const ticketTotal = parseFloat(data.TTC);
+        const difference = Math.abs(totalPaymentAmount - ticketTotal);
+        
+        if (difference > 0.01) { // Allow for minor floating point differences
+          return res.status(400).json({ 
+            error: `Payment amount mismatch. Total paid: ${totalPaymentAmount}, Ticket total: ${ticketTotal}`,
+            details: { total_paid: totalPaymentAmount, ticket_total: ticketTotal }
+          });
+        }
       }
 
       const db = await connectToDatabase();
@@ -685,7 +730,7 @@ const generateTicketsHTML = async (req, res) => {
   const data = await collection.findOne({ IdCRM: data2.idCRM, HeureTicket: data2.HeureTicket, idTiquer: parseInt(data2.idTiquer) });
 
 
-// console.log(data, data.ChiffreAffaire.Total_Ht)
+// console.log(data, data.Totals.Total_Ht)
 let htmlContent = `
 <!DOCTYPE html>
 <html lang="fr">
@@ -990,9 +1035,9 @@ data.Menu.forEach(item => {
 htmlContent += `
 <div class="Ligne2"></div>
 <br><div>
-<text class="HTtext">Montant HT : ${data.ChiffreAffaire.Total_Ht ? data.ChiffreAffaire.Total_Ht : ''} ${data.devise} *** *** TVA : ${data.ChiffreAffaire.Total_TVA ? data.ChiffreAffaire.Total_TVA : ''} ${data.devise}  </text></div>
+<text class="HTtext">Subtotal (HT) : ${data.Totals.Total_Ht ? data.Totals.Total_Ht : ''} ${data.devise} *** *** Tax (VAT) : ${data.Totals.Total_TVA ? data.Totals.Total_TVA : ''} ${data.devise}  </text></div>
 <div class="DivtotalText">
-  <text class="totalText"><b>TOTAL : ${data.ChiffreAffaire.Total_TTC ? data.ChiffreAffaire.Total_TTC : ''}  ${data.devise}</b> </text>
+  <text class="totalText"><b>TOTAL : ${data.Totals.Total_TTC ? data.Totals.Total_TTC : ''}  ${data.devise}</b> </text>
 </div>
 
 <div class="Ligne2"></div>
@@ -1001,15 +1046,20 @@ htmlContent += `
 <table  class="StyledTable" >
   <tbody>
   `;
-data.ModePaiement.forEach(payment => {
+const paymentMethods = data.PaymentMethods || data.ModePaiement;
+if (paymentMethods && Array.isArray(paymentMethods)) {
+  paymentMethods.forEach(payment => {
+    const method = payment.payment_method || payment.ModePaimeent || 'Unknown';
+    const amount = payment.amount || payment.totalwithMode || 0;
     htmlContent += `
       <tr >
-          <td class="Fist" ><text class="Taux"><b>${payment.ModePaimeent}</b></text></td>
+          <td class="Fist" ><text class="Taux"><b>${method}</b></text></td>
 
-          <td ><text class="Taux"><b>${payment.totalwithMode} ${data.devise}</b></text></td>
+          <td ><text class="Taux"><b>${amount} ${data.devise}</b></text></td>
       </tr>
       `;
-});
+  });
+}
 htmlContent += `
 
     
@@ -1021,15 +1071,15 @@ htmlContent += `
 <table  class="StyledTable2" >
 <tbody>
 <tr >
-<td ><text class="Taux"><b>TAUX</b></text></td>
-  <td  ><text class="Taux"><b>HT</b></text></td>
-  <td ><text class="Taux"><b>TVA</b></text></td>
-  <td ><text class="Taux"><b>TTC</b></text></td>
+<td ><text class="Taux"><b>CATEGORY</b></text></td>
+  <td  ><text class="Taux"><b>Subtotal</b></text></td>
+  <td ><text class="Taux"><b>Tax</b></text></td>
+  <td ><text class="Taux"><b>Total</b></text></td>
 </tr>
 `;
-for (const key in data.ChiffreAffaireDetailler) {
-    if (data.ChiffreAffaireDetailler.hasOwnProperty(key)) {
-        const Chiffre = data.ChiffreAffaireDetailler[key];
+for (const key in data.TotalsDetailler) {
+    if (data.TotalsDetailler.hasOwnProperty(key)) {
+        const Chiffre = data.TotalsDetailler[key];
         htmlContent += `
     <tr >
       <td ><text class="Taux"><b>${Chiffre.Taux}</b></text></td>
@@ -1274,8 +1324,8 @@ res.send(htmlContent);
                       </thead>
                   </table>
               `;
-          let totalHT = ticket.ChiffreAffaire?.Total_Ht || 0;
-          let totalTVA = ticket.ChiffreAffaire?.Total_TVA || 0;
+          let totalHT = ticket.Totals?.Total_Ht || 0;
+          let totalTVA = ticket.Totals?.Total_TVA || 0;
           if (ticket.Menu && Array.isArray(ticket.Menu)) {
             ticket.Menu.forEach(item => {
             htmlContent += `
@@ -1346,11 +1396,11 @@ res.send(htmlContent);
                   <table>
                       <tbody>
                           <tr>
-                              <td>HT</td>
+                              <td>Subtotal (HT)</td>
                               <td style="text-align: right;">${totalHT.toFixed(2)} ${ticket.devise || ''}</td>
                           </tr>
                           <tr>
-                              <td>TVA</td>
+                              <td>Tax (VAT)</td>
                               <td style="text-align: right;">${totalTVA.toFixed(2)} ${ticket.devise || ''}</td>
                           </tr>
                           <tr style="font-weight: bold; border-top: 1px solid #333;">
@@ -1360,19 +1410,30 @@ res.send(htmlContent);
                       </tbody>
                   </table>
           `;
-          if (ticket.ModePaiement && Array.isArray(ticket.ModePaiement)) {
-            ticket.ModePaiement.forEach(payment => {
+          const paymentMethods = ticket.PaymentMethods || ticket.ModePaiement;
+          if (paymentMethods && Array.isArray(paymentMethods)) {
             htmlContent += `
-                  <table style="margin-top: 8px;">
+                  <table style="margin-top: 12px; border-top: 2px solid #333; padding-top: 8px;">
                       <tbody>
-                          <tr>
-                              <td>${payment.ModePaimeent}</td>
-                              <td style="text-align: right;">${payment.totalwithMode} ${ticket.devise || ''}</td>
+                          <tr style="font-weight: bold;">
+                              <td>PAYMENT METHOD</td>
+                              <td style="text-align: right;">AMOUNT</td>
                           </tr>
+            `;
+            paymentMethods.forEach(payment => {
+              const method = payment.payment_method || payment.ModePaimeent || 'Unknown';
+              const amount = payment.amount || payment.totalwithMode || 0;
+              htmlContent += `
+                          <tr>
+                              <td>${method}</td>
+                              <td style="text-align: right;">${amount} ${ticket.devise || ''}</td>
+                          </tr>
+              `;
+            });
+            htmlContent += `
                       </tbody>
                   </table>
             `;
-            });
           }
           htmlContent += `
               </div>
@@ -1593,36 +1654,41 @@ res.send(htmlContent);
             <td style='width: 280px;'>
               </td>
             <td >
-            <div '><span  style='padding: 10px;'>DONT TVA:  </span>  ${totalTVA.toFixed(1)}${ticket.devise}</div>
+            <div '><span  style='padding: 10px;'>Tax (VAT):  </span>  ${totalTVA.toFixed(1)}${ticket.devise}</div>
           </td>
             </tr>
           </tbody>
         </table>
           -----------------------------------------------------------------------------------------------
           `;
-        ticket.ModePaiement.forEach(payment => {
-          htmlContent += `
+        const paymentMethods2 = ticket.PaymentMethods || ticket.ModePaiement;
+        if (paymentMethods2 && Array.isArray(paymentMethods2)) {
+          paymentMethods2.forEach(payment => {
+            const method = payment.payment_method || payment.ModePaimeent || 'Unknown';
+            const amount = payment.amount || payment.totalwithMode || 0;
+            htmlContent += `
           <table border=0>
           <tbody>
             <tr>
               <td style='width: 280px;'>
-                <div class="items">${payment.ModePaimeent}:</div>
+                <div class="items">${method}:</div>
               </td>
               <td >
-                <div '><span  style='padding: 20px;'> </span> ${payment.totalwithMode} ${ticket.devise}</div>
+                <div '><span  style='padding: 20px;'> </span> ${amount} ${ticket.devise}</div>
               </td>
             </tr>
           </tbody>
         </table>
           -----------------------------------------------------------------------------------------------
           `;
-        });
+          });
+        }
         htmlContent += `
             </div>
             <div class="closing-note">
                 <p style='padding-left: 180px;'>${ticket.ModeConsomation.toUpperCase()}</p>
                 -----------------------------------------------------------------------------------------------
-                <p style='padding-left: 80px;'>MERCI DE VOTRE VISITE A TRES BIENTOT</p>
+                <p style='padding-left: 80px;'>THANK YOU FOR YOUR VISIT, SEE YOU SOON</p>
             </div>
         </div>
         `;
@@ -1634,4 +1700,98 @@ res.send(htmlContent);
     `;
     res.send(htmlContent);
   };
-  module.exports = {updateLivestatForGetReglement,GetBaseName,sendPdfInEmail,updateStatus,sendWelcomeEmail ,generateTicketsHTML2,generateTicketsHTML,getTicketRestoById,getTiquerId,UpdateTiquer, getLivestatByIdandDate2,getAllCatInUploid,updateAllCatCripteInMongo, updateAllCatInUploid, UpdateLicence,UpdateBaseDeDonne,updateLivestat3,updateLivestat4, getLivestatByIdandDate, updateStatusStores, GetLicence };
+
+  // New endpoint: Get payment statistics and aggregation
+  const getPaymentStatistics = async (req, res) => {
+    try {
+      const idCRM = req.query.idCRM;
+      const date1 = req.query.date1;
+      const date2 = req.query.date2;
+
+      if (!idCRM || !date1 || !date2) {
+        return res.status(400).json({ 
+          error: "Missing required parameters: idCRM, date1, date2" 
+        });
+      }
+
+      const db = await connectToDatabase();
+      const collection = db.collection('Tiquer');
+
+      // Fetch all tickets in date range
+      const tickets = await collection.find({
+        IdCRM: idCRM,
+        Date: { $gte: date1, $lte: date2 }
+      }).toArray();
+
+      if (!tickets || tickets.length === 0) {
+        return res.status(404).json({ error: "No tickets found for this period" });
+      }
+
+      // Aggregate payment statistics
+      const paymentStats = {
+        total_revenue: 0,
+        total_transactions: 0,
+        payment_methods: {},
+        payment_breakdown: []
+      };
+
+      tickets.forEach(ticket => {
+        paymentStats.total_revenue += parseFloat(ticket.TTC) || 0;
+        paymentStats.total_transactions += 1;
+
+        // Support both new and legacy payment method formats
+        const paymentMethods = ticket.PaymentMethods || ticket.ModePaiement;
+        
+        if (paymentMethods && Array.isArray(paymentMethods)) {
+          paymentMethods.forEach(payment => {
+            const method = payment.payment_method || payment.ModePaimeent || 'Unknown';
+            const amount = parseFloat(payment.amount || payment.totalwithMode || 0);
+
+            // Aggregate by payment method
+            if (!paymentStats.payment_methods[method]) {
+              paymentStats.payment_methods[method] = {
+                total_amount: 0,
+                transaction_count: 0,
+                average_transaction: 0
+              };
+            }
+
+            paymentStats.payment_methods[method].total_amount += amount;
+            paymentStats.payment_methods[method].transaction_count += 1;
+          });
+        }
+      });
+
+      // Calculate averages and format payment breakdown
+      Object.keys(paymentStats.payment_methods).forEach(method => {
+        const stats = paymentStats.payment_methods[method];
+        stats.average_transaction = stats.total_amount / stats.transaction_count;
+        paymentStats.payment_breakdown.push({
+          payment_method: method,
+          total_amount: parseFloat(stats.total_amount.toFixed(2)),
+          transaction_count: stats.transaction_count,
+          average_amount: parseFloat(stats.average_transaction.toFixed(2)),
+          percentage_of_total: parseFloat(((stats.total_amount / paymentStats.total_revenue) * 100).toFixed(2))
+        });
+      });
+
+      // Sort by total amount descending
+      paymentStats.payment_breakdown.sort((a, b) => b.total_amount - a.total_amount);
+
+      // Add summary
+      paymentStats.total_revenue = parseFloat(paymentStats.total_revenue.toFixed(2));
+      paymentStats.date_range = { start: date1, end: date2 };
+
+      res.status(200).json({
+        status: "success",
+        data: paymentStats,
+        message: "Payment statistics retrieved successfully"
+      });
+
+    } catch (error) {
+      console.error("Error in getPaymentStatistics:", error);
+      res.status(500).json({ error: "Internal Server Error", details: error.message });
+    }
+  };
+
+  module.exports = {updateLivestatForGetReglement,GetBaseName,sendPdfInEmail,updateStatus,sendWelcomeEmail ,generateTicketsHTML2,generateTicketsHTML,getTicketRestoById,getTiquerId,UpdateTiquer, getLivestatByIdandDate2,getAllCatInUploid,updateAllCatCripteInMongo, updateAllCatInUploid, UpdateLicence,UpdateBaseDeDonne,updateLivestat3,updateLivestat4, getLivestatByIdandDate, updateStatusStores, GetLicence, getPaymentStatistics };

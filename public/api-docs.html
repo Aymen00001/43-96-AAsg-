@@ -618,6 +618,7 @@
             <div class="nav-section">
                 <div class="nav-section-title">Endpoints</div>
                 <a class="nav-link" onclick="scrollToSection('sales')">Sales & Transactions</a>
+                <a class="nav-link" onclick="scrollToSection('payment-stats')">Payment Statistics</a>
                 <a class="nav-link" onclick="scrollToSection('email')">Email</a>
                 <a class="nav-link" onclick="scrollToSection('data')">Data Retrieval</a>
                 <a class="nav-link" onclick="scrollToSection('store')">Store Management</a>
@@ -650,6 +651,7 @@
                     <li><a href="#authentication">Authentication</a></li>
                     <li><a href="#responses">Response Format</a></li>
                     <li><a href="#sales">Sales & Transactions</a></li>
+                    <li><a href="#payment-stats">Payment Statistics</a></li>
                     <li><a href="#email">Email Endpoints</a></li>
                     <li><a href="#data">Data Retrieval</a></li>
                     <li><a href="#store">Store Management</a></li>
@@ -844,6 +846,17 @@
         }
       ]
     }
+  ],
+  "Totals": {
+    "Total_Ht": 45.90,
+    "Total_TVA": 5.59,
+    "Total_TTC": 51.49
+  },
+  "PaymentMethods": [
+    {
+      "payment_method": "CASH",
+      "amount": 51.49
+    }
   ]
 }</code></pre>
                     </div>
@@ -865,12 +878,17 @@
                             </tr>
                             <tr>
                                 <td><span class="param-name">Date</span></td>
-                                <td><span class="param-type">string</span></td>
+                                <td><span class="param-type">string (YYYYMMDD)</span></td>
                                 <td><span class="badge required">Yes</span></td>
                             </tr>
                             <tr>
                                 <td><span class="param-name">idTiquer</span></td>
-                                <td><span class="param-type">string</span></td>
+                                <td><span class="param-type">number</span></td>
+                                <td><span class="badge required">Yes</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="param-name">HeureTicket</span></td>
+                                <td><span class="param-type">string (HH:MM)</span></td>
                                 <td><span class="badge required">Yes</span></td>
                             </tr>
                             <tr>
@@ -879,12 +897,204 @@
                                 <td><span class="badge required">Yes</span></td>
                             </tr>
                             <tr>
-                                <td><span class="param-name">ChiffreAffaire</span></td>
+                                <td><span class="param-name">Totals</span></td>
                                 <td><span class="param-type">object</span></td>
+                                <td><span class="badge required">Yes</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="param-name">PaymentMethods</span></td>
+                                <td><span class="param-type">array</span></td>
                                 <td><span class="badge optional">No</span></td>
                             </tr>
                         </tbody>
                     </table>
+
+                    <h3 style="margin-top: 24px; margin-bottom: 12px; font-size: 14px; color: var(--text); font-weight: 600;">Totals Object Structure</h3>
+                    <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 12px;">The <code style="color: var(--accent);">Totals</code> object contains financial breakdown information:</p>
+                    <div class="code-block">
+                        <pre><code class="language-json">{
+  "Totals": {
+    "Total_Ht": 45.90,
+    "Total_TVA": 5.59,
+    "Total_TTC": 51.49
+  }
+}</code></pre>
+                    </div>
+                    <ul class="feature-list">
+                        <li><code style="color: var(--accent);">Total_Ht</code> - Subtotal (HT: Hors Taxe / before tax)</li>
+                        <li><code style="color: var(--accent);">Total_TVA</code> - Tax amount (TVA: Value Added Tax)</li>
+                        <li><code style="color: var(--accent);">Total_TTC</code> - Grand Total (TTC: Tax Inclusive Total)</li>
+                    </ul>
+
+                    <h3 style="margin-top: 24px; margin-bottom: 12px; font-size: 14px; color: var(--text); font-weight: 600;">Payment Methods Format</h3>
+                    <div style="background: rgba(59, 130, 246, 0.1); border-left: 3px solid #3b82f6; padding: 12px 16px; border-radius: 4px; font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+                        <p style="margin: 0 0 8px 0;"><strong style="color: var(--text);">New Format (Recommended):</strong></p>
+                        <p style="margin: 0;"><code style="color: var(--accent);">PaymentMethods</code> array with <code style="color: var(--accent);">payment_method</code> and <code style="color: var(--accent);">amount</code> fields</p>
+                    </div>
+
+                    <h3 style="margin-bottom: 12px; font-size: 13px; color: var(--text); font-weight: 600;">Allowed Payment Methods</h3>
+                    <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 12px;">System only accepts the following payment method types:</p>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 12px; margin-bottom: 16px;">
+                        <div style="background: rgba(16, 185, 129, 0.1); border-left: 3px solid #10b981; padding: 12px; border-radius: 4px; text-align: center;">
+                            <div style="font-weight: 600; color: var(--text);">CASH</div>
+                            <div style="font-size: 12px; color: var(--text-muted);">Cash payments</div>
+                        </div>
+                        <div style="background: rgba(59, 130, 246, 0.1); border-left: 3px solid #3b82f6; padding: 12px; border-radius: 4px; text-align: center;">
+                            <div style="font-weight: 600; color: var(--text);">CARD</div>
+                            <div style="font-size: 12px; color: var(--text-muted);">Card payments</div>
+                        </div>
+                        <div style="background: rgba(249, 115, 22, 0.1); border-left: 3px solid var(--accent); padding: 12px; border-radius: 4px; text-align: center;">
+                            <div style="font-weight: 600; color: var(--text);">CHECK</div>
+                            <div style="font-size: 12px; color: var(--text-muted);">Check payments</div>
+                        </div>
+                    </div>
+
+                    <h3 style="margin-bottom: 12px; font-size: 13px; color: var(--text); font-weight: 600;">Payment Validation Rules</h3>
+                    <ul class="feature-list">
+                        <li><code style="color: var(--accent);">payment_method</code> must be one of: CASH, CARD, CHECK</li>
+                        <li>Case-insensitive (accepts "cash", "CASH", "Cash")</li>
+                        <li>Sum of all <code style="color: var(--accent);">amount</code> values MUST equal ticket <code style="color: var(--accent);">TTC</code></li>
+                        <li>Tolerance: 0.01€ for floating-point differences</li>
+                        <li>Returns 400 error if payment method is invalid or amounts don't match</li>
+                        <li>Supports multiple payment methods in single transaction</li>
+                    </ul>
+
+                    <div class="code-label" style="margin-top: 16px;">Payment Methods Example</div>
+                    <div class="code-block">
+                        <pre><code class="language-json">{
+  "PaymentMethods": [
+    {
+      "payment_method": "CASH",
+      "amount": 30.00
+    },
+    {
+      "payment_method": "CARD",
+      "amount": 21.49
+    }
+  ]
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Statistics -->
+            <div class="section" id="payment-stats">
+                <h2 class="section-title">Payment Statistics</h2>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="method get">GET</span>
+                        <span class="endpoint-path">/get-payment-statistics</span>
+                    </div>
+                    <p class="endpoint-description">Retrieves payment method statistics and aggregation for a store within a date range. <span class="badge success">NEW</span></p>
+                    
+                    <div class="params-title">Query Parameters</div>
+                    <table class="params-table">
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Required</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="param-name">idCRM</span></td>
+                                <td><span class="param-type">string</span></td>
+                                <td><span class="badge required">Yes</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="param-name">date1</span></td>
+                                <td><span class="param-type">string</span></td>
+                                <td><span class="badge required">Yes</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="param-name">date2</span></td>
+                                <td><span class="param-type">string</span></td>
+                                <td><span class="badge required">Yes</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <span class="code-label" style="margin-top: 16px;">Example Request</span>
+                    <div class="code-block">
+                        <pre><code>GET /get-payment-statistics?idCRM=2435&date1=20260101&date2=20260228</code></pre>
+                    </div>
+
+                    <div class="params-title">Response</div>
+                    <div class="response-box">
+                        <div class="response-label">200 OK - Payment Statistics</div>
+                        <div class="code-block" style="margin-bottom: 0;">
+                            <pre><code class="language-json">{
+  "status": "success",
+  "data": {
+    "total_revenue": 5234.50,
+    "total_transactions": 45,
+    "date_range": {
+      "start": "20260101",
+      "end": "20260228"
+    },
+    "payment_methods": {
+      "CASH": {
+        "total_amount": 3000.00,
+        "transaction_count": 25,
+        "average_transaction": 120.00
+      },
+      "CARD": {
+        "total_amount": 2234.50,
+        "transaction_count": 20,
+        "average_transaction": 111.73
+      }
+    },
+    "payment_breakdown": [
+      {
+        "payment_method": "CASH",
+        "total_amount": 3000.00,
+        "transaction_count": 25,
+        "average_amount": 120.00,
+        "percentage_of_total": 57.38
+      },
+      {
+        "payment_method": "CARD",
+        "total_amount": 2234.50,
+        "transaction_count": 20,
+        "average_amount": 111.73,
+        "percentage_of_total": 42.62
+      }
+    ]
+  },
+  "message": "Payment statistics retrieved successfully"
+}</code></pre>
+                        </div>
+                    </div>
+
+                    <h3 style="margin-top: 24px; margin-bottom: 12px; font-size: 14px; color: var(--text); font-weight: 600;">Response Data Fields</h3>
+                    <ul class="feature-list">
+                        <li><code style="color: var(--accent);">total_revenue</code> - Total amount across all transactions</li>
+                        <li><code style="color: var(--accent);">total_transactions</code> - Number of transactions in period</li>
+                        <li><code style="color: var(--accent);">payment_methods</code> - Detailed breakdown by method</li>
+                        <li><code style="color: var(--accent);">payment_breakdown</code> - Sorted array (highest revenue first)</li>
+                        <li><code style="color: var(--accent);">percentage_of_total</code> - Revenue contribution %</li>
+                    </ul>
+
+                    <div class="status-codes">
+                        <div class="status-code">
+                            <div class="status-code-number">200</div>
+                            <div class="status-code-desc">Success</div>
+                        </div>
+                        <div class="status-code">
+                            <div class="status-code-number">400</div>
+                            <div class="status-code-desc">Missing parameters</div>
+                        </div>
+                        <div class="status-code">
+                            <div class="status-code-number">404</div>
+                            <div class="status-code-desc">No data found</div>
+                        </div>
+                        <div class="status-code">
+                            <div class="status-code-number">500</div>
+                            <div class="status-code-desc">Server error</div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -1521,6 +1731,11 @@ getTickets('2435', '20260101', '20260131');</code></pre>
                     <pre><code class="language-bash">curl "https://four3-96-aasg.onrender.com/display-ticket-receipt/2435/20251213/30" -o ticket.html</code></pre>
                 </div>
 
+                <span class="code-label">Get Payment Statistics</span>
+                <div class="code-block">
+                    <pre><code class="language-bash">curl "https://four3-96-aasg.onrender.com/get-payment-statistics?idCRM=2435&date1=20260101&date2=20260228"</code></pre>
+                </div>
+
                 <span class="code-label">Send Welcome Email</span>
                 <div class="code-block">
                     <pre><code class="language-bash">curl -X POST https://four3-96-aasg.onrender.com/send-welcome-email \
@@ -1549,7 +1764,7 @@ getTickets('2435', '20260101', '20260131');</code></pre>
   "HeureTicket": "15:21",
   "TTC": 51.49,
   "Menu": [...],
-  "ChiffreAffaire": {
+  "Totals": {
     "Total_Ht": 8.091,
     "Total_TVA": 0.809,
     "Total_TTC": 8.9

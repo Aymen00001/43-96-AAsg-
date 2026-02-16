@@ -15,11 +15,12 @@
 4. [Sales & Transaction Endpoints](#sales--transaction-endpoints)
 5. [Email Endpoints](#email-endpoints)
 6. [Data Retrieval Endpoints](#data-retrieval-endpoints)
-7. [Store Management Endpoints](#store-management-endpoints)
-8. [Category & Image Synchronization](#category--image-synchronization)
-9. [Ticket Display Endpoints](#ticket-display-endpoints)
-10. [Error Handling](#error-handling)
-11. [Code Examples](#code-examples)
+7. [Payment Statistics](#payment-statistics)
+8. [Store Management Endpoints](#store-management-endpoints)
+9. [Category & Image Synchronization](#category--image-synchronization)
+10. [Ticket Display Endpoints](#ticket-display-endpoints)
+11. [Error Handling](#error-handling)
+12. [Code Examples](#code-examples)
 
 ---
 
@@ -223,11 +224,11 @@ For endpoints that require authentication:
   ],
   "ModePaiement": [
     {
-      "ModePaimeent": "ESPECES",
-      "totalwithMode": 18.09
+      "payment_method": "CASH",
+      "amount": 18.09
     }
   ],
-  "ChiffreAffaire": {
+  "Totals": {
     "Total_TTC": 8.9,
     "Total_Ht": 8.091,
     "Total_TVA": 0.809
@@ -245,18 +246,50 @@ For endpoints that require authentication:
 - `idTiquer` - Ticket unique identifier (within same restaurant/date)
 - `HeureTicket` - Ticket time
 - `Menu` - Array of menu items
+- `Totals` - Totals object with Total_Ht, Total_TVA, and Total_TTC
 
 **Optional Fields:**
 - `TTC` - Total with tax
 - `ModeConsomation` - Consumption mode
-- `ChiffreAffaire` - Totals object
-- `ModePaiement` - Payment methods array
+- `PaymentMethods` - Payment methods array (new format, recommended)
+- `ModePaiement` - Payment methods array (legacy format, deprecated)
 - `devise` - Currency
 - `NomSociete` - Restaurant name
 - `sAdress` - Address
 - `ville` - City
 
-**Menu Item Structure:**
+**Payment Method Structure (New Format - Recommended):**
+```json
+{
+  "PaymentMethods": [
+    {
+      "payment_method": "CASH",
+      "amount": 13.5
+    },
+    {
+      "payment_method": "CARD",
+      "amount": 0
+    }
+  ]
+}
+```
+
+**Payment Method Validation:**
+- Each payment method must have `payment_method` (string) and `amount` (number)
+- Sum of all payment amounts MUST equal ticket TTC (with 0.01 tolerance for floating point)
+- Returns 400 error if payment amounts don't match ticket total
+
+**Payment Method Structure (Legacy Format - Deprecated):**
+```json
+{
+  "ModePaiement": [
+    {
+      "ModePaimeent": "CASH",
+      "totalwithMode": 13.5
+    }
+  ]
+}
+```
 ```json
 {
   "NameProduct": "Product Name",
@@ -440,7 +473,83 @@ GET /get-detailed-sales-summary?idCRM=2435&date1=20260101&date2=20260228
 
 ---
 
-### 3. Get Tickets
+## Payment Statistics
+
+Statistics endpoint for analyzing payment methods and revenue trends.
+
+### 1. Get Payment Statistics
+
+**Description:** Retrieves payment method statistics and aggregates for a store within a date range
+
+**Query Parameters:**
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| idCRM | string | Yes | Store identifier |
+| date1 | string | Yes | Start date (YYYYMMDD) |
+| date2 | string | Yes | End date (YYYYMMDD) |
+
+**Example Request:**
+```
+GET /get-payment-statistics?idCRM=2435&date1=20260101&date2=20260228
+```
+
+**Response:**
+```json
+{
+  "status": "success",
+  "data": {
+    "total_revenue": 5234.50,
+    "total_transactions": 45,
+    "date_range": {
+      "start": "20260101",
+      "end": "20260228"
+    },
+    "payment_methods": {
+      "CASH": {
+        "total_amount": 3000.00,
+        "transaction_count": 25,
+        "average_transaction": 120.00
+      },
+      "CARD": {
+        "total_amount": 2234.50,
+        "transaction_count": 20,
+        "average_transaction": 111.73
+      }
+    },
+    "payment_breakdown": [
+      {
+        "payment_method": "CASH",
+        "total_amount": 3000.00,
+        "transaction_count": 25,
+        "average_amount": 120.00,
+        "percentage_of_total": 57.38
+      },
+      {
+        "payment_method": "CARD",
+        "total_amount": 2234.50,
+        "transaction_count": 20,
+        "average_amount": 111.73,
+        "percentage_of_total": 42.62
+      }
+    ]
+  },
+  "message": "Payment statistics retrieved successfully"
+}
+```
+
+**Response Fields:**
+- `total_revenue` - Total amount across all transactions
+- `total_transactions` - Number of transactions in period
+- `payment_methods` - Detailed breakdown by payment method
+- `payment_breakdown` - Sorted array of payment method statistics
+
+**Status Codes:**
+- `200` - Success
+- `400` - Missing required parameters
+- `404` - No tickets found for date range
+- `500` - Server error
+
+---
 
 **Endpoint:** `GET /get-tickets`
 
@@ -1034,7 +1143,7 @@ Stores individual ticket records
 - `HeureTicket` - Time
 - `TTC` - Total with tax
 - `Menu[]` - Line items
-- `ChiffreAffaire` - Totals object
+- `Totals` - Totals object
 - `ModePaiement[]` - Payment methods
 
 **Unique Index:** `{IdCRM, Date, idTiquer}`
