@@ -5,7 +5,6 @@ const { ObjectId } = require('mongodb');
 const mongoose = require("mongoose");
 
 const UsersModel = require('../models/UsersModel.js');
-const { io } = require("../app.js");
 
 dotenv.config();
 

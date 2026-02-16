@@ -11,9 +11,6 @@ const app = express();
 const fs = require('fs');
 const { updateStatus } = require('./controllers/livestatsController.js');
 const CronJob = require('cron').CronJob;
-const socketIo = require('socket.io');
-const { MongoClient } = require('mongodb');
-const { attachIO } = require('./utils/attachIO.js');
 
 
 // Enable CORS for the specific origin
