@@ -682,7 +682,7 @@ const generateTicketsHTML = async (req, res) => {
   const data2 = JSON.parse(req.query.data);
   const db = await connectToDatabase();
   const collection = db.collection('Tiquer');
-  const data = await collection.findOne({ idCRM: data2.idCRM, HeureTicket: data2.HeureTicket,idTiquer:data2.idTiquer });
+  const data = await collection.findOne({ IdCRM: data2.idCRM, HeureTicket: data2.HeureTicket, idTiquer: parseInt(data2.idTiquer) });
 
 
 // console.log(data, data.ChiffreAffaire.Total_Ht)
@@ -1091,7 +1091,7 @@ res.send(htmlContent);
       const idTiquer = req.params.idTiquer;
       const db = await connectToDatabase();
       const collection = db.collection('Tiquer');
-      const ticket = await collection.findOne({ idCRM: idCRM, Date: date, idTiquer: idTiquer });
+      const ticket = await collection.findOne({ IdCRM: idCRM, Date: date, idTiquer: parseInt(idTiquer) });
       
       if (!ticket) {
         return res.status(404).send('<html><body>Ticket not found</body></html>');
@@ -1276,7 +1276,8 @@ res.send(htmlContent);
               `;
           let totalHT = ticket.ChiffreAffaire?.Total_Ht || 0;
           let totalTVA = ticket.ChiffreAffaire?.Total_TVA || 0;
-          ticket.Menu.forEach(item => {
+          if (ticket.Menu && Array.isArray(ticket.Menu)) {
+            ticket.Menu.forEach(item => {
             htmlContent += `
                   <table>
                       <tbody>
@@ -1338,6 +1339,7 @@ res.send(htmlContent);
               });
             }
           });
+          }
           htmlContent += `
               </div>
               <div class="payment-details">
@@ -1345,35 +1347,37 @@ res.send(htmlContent);
                       <tbody>
                           <tr>
                               <td>HT</td>
-                              <td style="text-align: right;">${totalHT.toFixed(2)} ${ticket.devise}</td>
+                              <td style="text-align: right;">${totalHT.toFixed(2)} ${ticket.devise || ''}</td>
                           </tr>
                           <tr>
                               <td>TVA</td>
-                              <td style="text-align: right;">${totalTVA.toFixed(2)} ${ticket.devise}</td>
+                              <td style="text-align: right;">${totalTVA.toFixed(2)} ${ticket.devise || ''}</td>
                           </tr>
                           <tr style="font-weight: bold; border-top: 1px solid #333;">
                               <td>TOTAL</td>
-                              <td style="text-align: right;">${ticket.TTC} ${ticket.devise}</td>
+                              <td style="text-align: right;">${ticket.TTC} ${ticket.devise || ''}</td>
                           </tr>
                       </tbody>
                   </table>
           `;
-          ticket.ModePaiement.forEach(payment => {
+          if (ticket.ModePaiement && Array.isArray(ticket.ModePaiement)) {
+            ticket.ModePaiement.forEach(payment => {
             htmlContent += `
                   <table style="margin-top: 8px;">
                       <tbody>
                           <tr>
                               <td>${payment.ModePaimeent}</td>
-                              <td style="text-align: right;">${payment.totalwithMode} ${ticket.devise}</td>
+                              <td style="text-align: right;">${payment.totalwithMode} ${ticket.devise || ''}</td>
                           </tr>
                       </tbody>
                   </table>
             `;
-          });
+            });
+          }
           htmlContent += `
               </div>
               <div class="closing-note">
-                  <p>${ticket.ModeConsomation.toUpperCase()}</p>
+                  <p>${ticket.ModeConsomation ? ticket.ModeConsomation.toUpperCase() : 'SUR PLACE'}</p>
                   <p style="margin-top: 8px;">MERCI DE VOTRE VISITE</p>
               </div>
           </div>
@@ -1416,9 +1420,9 @@ res.send(htmlContent);
     const livestats = await collection.aggregate([
       {
         $match: {
-          idCRM: idCRM,
+          IdCRM: idCRM,
           HeureTicket: HeureTicket,
-          idTiquer: idTiquer
+          idTiquer: parseInt(idTiquer)
         }
       },
     ]).toArray();
