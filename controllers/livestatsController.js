@@ -1256,9 +1256,9 @@ res.send(htmlContent);
           htmlContent += `
           <div class="ticket">
               <div class="ticket-details">
-                  <p>${ticket.NomSociete}</p>
-                  <p>${ticket.sAdress}</p>
-                  <p>${ticket.ville}</p>
+                  <p>${ticket.NomSociete || ''}</p>
+                  <p>${ticket.sAdress || ''}</p>
+                  <p>${ticket.ville || ''}</p>
                   <p style='margin-top: 4px;'>${formattedDate} ${ticket.HeureTicket}</p>
                   <p>Servi par: ADMIN</p>
                   <h1>TICKET: ${ticket.idTiquer}</h1>
