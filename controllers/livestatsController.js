@@ -229,37 +229,36 @@ const sendPdfInEmail = (req, res) => {
 const UpdateTiquer = async (req, res) => {
     const data = req.body;
 
-
     try {
+      // Validate required fields
+      if (!data.IdCRM || !data.Date || !data.idTiquer || !data.HeureTicket) {
+        console.error("Missing required fields:", { IdCRM: data.IdCRM, Date: data.Date, idTiquer: data.idTiquer, HeureTicket: data.HeureTicket });
+        return res.status(400).json({ error: "Missing required fields: IdCRM, Date, idTiquer, HeureTicket" });
+      }
+
       const db = await connectToDatabase();
       const collection = db.collection('Tiquer');
 
-        const result = await collection.findOne({ IdCRM: data.IdCRM, Date: data.Date ,idTiquer :data.idTiquer ,HeureTicket:data.HeureTicket});
+      const query = { IdCRM: data.IdCRM, Date: data.Date, idTiquer: data.idTiquer, HeureTicket: data.HeureTicket };
+      const result = await collection.findOne(query);
       
-        const updateFields = {};
-        for (const key in data) {
+      if (result) {
+        console.log("Ticket already exists for IdCRM:", data.IdCRM, "idTiquer:", data.idTiquer);
+        return res.status(200).json({ message: "Ticket already exists", _id: result._id });
+      }
 
-          updateFields[key] = data[key];
-        }
-        
-        if (result) {
-
-          console.log("aready Exist");
-        } else {
-          console.log('No result found.');
-
-
-
-          await collection.insertOne(updateFields);
-
-          console.log("1 Tiquer  inserted");
-        }
+      const insertResult = await collection.insertOne(data);
       
+      if (!insertResult.insertedId) {
+        console.error("Insert failed - no insertedId returned");
+        return res.status(500).json({ error: "Failed to insert ticket" });
+      }
 
-      res.sendStatus(200);
+      console.log("Ticket inserted successfully. InsertedId:", insertResult.insertedId, "IdCRM:", data.IdCRM, "idTiquer:", data.idTiquer);
+      res.status(201).json({ message: "Ticket inserted successfully", _id: insertResult.insertedId });
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: "Internal Server Error" });
+      console.error("Error in UpdateTiquer:", error);
+      res.status(500).json({ error: "Internal Server Error", details: error.message });
     }
   };
 
