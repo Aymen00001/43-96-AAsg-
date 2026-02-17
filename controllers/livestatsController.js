@@ -1097,7 +1097,7 @@ htmlContent += `
 <div class="Ligne1"></div><div class="Ligne1"></div>
 
 <div class="centered-text">
-<text class="bold-text ModeConsomation">${data.ModeConsomation.toUpperCase()}</text>
+<text class="bold-text ConsumptionMode">${(data.ConsumptionMode || 'SUR PLACE').toUpperCase()}</text>
 </div>
 <div class="Ligne1"></div><div class="Ligne1"></div>
 <div class="centered-text">
@@ -1269,6 +1269,40 @@ res.send(htmlContent);
               .closing-note p {
                   margin: 2px 0;
               }
+              .header-info {
+                  font-size: 10px;
+                  text-align: left;
+                  margin-bottom: 8px;
+                  padding-bottom: 4px;
+                  border-bottom: 1px solid #ddd;
+              }
+              .header-info p {
+                  margin: 1px 0;
+              }
+              .footer-info {
+                  text-align: center;
+                  font-size: 10px;
+                  margin-top: 8px;
+                  padding-top: 4px;
+                  border-top: 1px solid #ddd;
+              }
+              .footer-info p {
+                  margin: 1px 0;
+              }
+              .card-details {
+                  font-size: 10px;
+                  margin-top: 8px;
+                  padding-top: 8px;
+                  border-top: 1px dashed #ddd;
+              }
+              .card-details p {
+                  margin: 1px 0;
+              }
+              .card-label {
+                  font-weight: bold;
+                  display: inline-block;
+                  width: 120px;
+              }
               tr {
                   height: auto;
               }
@@ -1305,6 +1339,13 @@ res.send(htmlContent);
           });
           htmlContent += `
           <div class="ticket">
+              <div class="header-info">
+                  ${ticket.NF525 ? `<p>NF525: ${ticket.NF525}</p>` : ''}
+                  ${ticket.TVA_intra ? `<p>TVA: ${ticket.TVA_intra}</p>` : ''}
+                  ${ticket.NAF_code ? `<p>NAF: ${ticket.NAF_code}</p>` : ''}
+                  ${ticket.Origin_copy_number ? `<p>Origin Copy N°: ${ticket.Origin_copy_number}</p>` : ''}
+                  ${ticket.Order_number ? `<p>Order N°: ${ticket.Order_number}</p>` : ''}
+              </div>
               <div class="ticket-details">
                   <p>${ticket.NomSociete || ''}</p>
                   <p>${ticket.sAdress || ''}</p>
@@ -1435,11 +1476,68 @@ res.send(htmlContent);
                   </table>
             `;
           }
+          
+          // Calculate line and item counts
+          let lineCount = 0;
+          let itemCount = 0;
+          if (ticket.Menu && Array.isArray(ticket.Menu)) {
+            lineCount = ticket.Menu.length;
+            ticket.Menu.forEach(item => {
+              itemCount += item.QtyProduct || 1;
+            });
+          }
+          
           htmlContent += `
               </div>
               <div class="closing-note">
-                  <p>${ticket.ModeConsomation ? ticket.ModeConsomation.toUpperCase() : 'SUR PLACE'}</p>
-                  <p style="margin-top: 8px;">MERCI DE VOTRE VISITE</p>
+                  <p>${ticket.ConsumptionMode ? ticket.ConsumptionMode.toUpperCase() : 'SUR PLACE'}</p>
+              </div>
+          `;
+          
+          // Add footer info
+          if (lineCount > 0 || itemCount > 0) {
+            htmlContent += `
+              <div class="footer-info">
+                  <p>Lines: ${lineCount} | Items: ${itemCount}</p>
+            `;
+            if (ticket.Signature) {
+              htmlContent += `
+                  <p style="margin-top: 8px; border-top: 1px solid #ddd; padding-top: 4px;">Signature: ${ticket.Signature}</p>
+            `;
+            }
+            htmlContent += `
+              </div>
+            `;
+          }
+          
+          // Add card payment details if applicable
+          if (ticket.PaymentMethods && Array.isArray(ticket.PaymentMethods)) {
+            const cardPayment = ticket.PaymentMethods.find(p => 
+              (p.payment_method || p.ModePaimeent || '').toUpperCase() === 'CARD'
+            );
+            if (cardPayment && ticket.CardDetails) {
+              const cd = ticket.CardDetails;
+              htmlContent += `
+              <div class="card-details">
+                  ${cd.merchant_name ? `<p><span class="card-label">Merchant:</span> ${cd.merchant_name}</p>` : ''}
+                  ${cd.transaction_type ? `<p><span class="card-label">Type:</span> ${cd.transaction_type}</p>` : ''}
+                  ${cd.date_time ? `<p><span class="card-label">DateTime:</span> ${cd.date_time}</p>` : ''}
+                  ${cd.terminal_id || cd.merchant_id ? `<p><span class="card-label">Terminal:</span> ${cd.terminal_id || 'N/A'} / ${cd.merchant_id || 'N/A'}</p>` : ''}
+                  ${cd.card_scheme ? `<p><span class="card-label">Card:</span> ${cd.card_scheme}</p>` : ''}
+                  ${cd.AID ? `<p><span class="card-label">AID:</span> ${cd.AID}</p>` : ''}
+                  ${cd.masked_pan ? `<p><span class="card-label">PAN:</span> ${cd.masked_pan}</p>` : ''}
+                  ${cd.authorization_number ? `<p><span class="card-label">Auth:</span> ${cd.authorization_number}</p>` : ''}
+                  ${cd.total_amount ? `<p><span class="card-label">Amount:</span> ${cd.total_amount}</p>` : ''}
+                  ${cd.receipt_type ? `<p><span class="card-label">Receipt:</span> ${cd.receipt_type}</p>` : ''}
+                  ${cd.sequence_number ? `<p><span class="card-label">Sequence:</span> ${cd.sequence_number}</p>` : ''}
+              </div>
+            `;
+            }
+          }
+          
+          htmlContent += `
+              <div style="text-align: center; margin-top: 12px; padding-top: 8px; border-top: 1px solid #ddd; font-size: 10px;">
+                  <p>MERCI DE VOTRE VISITE</p>
               </div>
           </div>
           `;
@@ -1686,7 +1784,7 @@ res.send(htmlContent);
         htmlContent += `
             </div>
             <div class="closing-note">
-                <p style='padding-left: 180px;'>${ticket.ModeConsomation.toUpperCase()}</p>
+                <p style='padding-left: 180px;'>${ticket.ConsumptionMode ? ticket.ConsumptionMode.toUpperCase() : 'SUR PLACE'}</p>
                 -----------------------------------------------------------------------------------------------
                 <p style='padding-left: 80px;'>THANK YOU FOR YOUR VISIT, SEE YOU SOON</p>
             </div>

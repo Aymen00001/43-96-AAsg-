@@ -193,7 +193,7 @@ For endpoints that require authentication:
   "idTiquer": "30",
   "HeureTicket": "15:21",
   "TTC": 51.49,
-  "ModeConsomation": "A Emporter",
+  "ConsumptionMode": "SUR PLACE",
   "Menu": [
     {
       "NameProduct": "MENU SANDWICH",
@@ -250,13 +250,16 @@ For endpoints that require authentication:
 
 **Optional Fields:**
 - `TTC` - Total with tax
-- `ModeConsomation` - Consumption mode
+- `ConsumptionMode` - Consumption mode (e.g., "SUR PLACE", "A EMPORTER")
 - `PaymentMethods` - Payment methods array (new format, recommended)
 - `ModePaiement` - Payment methods array (legacy format, deprecated)
 - `devise` - Currency
 - `NomSociete` - Restaurant name
 - `sAdress` - Address
 - `ville` - City
+- `NF525` - NF525 compliance number (displays in ticket header)
+- `Signature` - Customer or staff signature line (displays in ticket footer)
+- `CardDetails` - Detailed card transaction information (displays when payment method is CARD)
 
 **Payment Method Structure (New Format - Recommended):**
 ```json
@@ -290,6 +293,43 @@ For endpoints that require authentication:
   ]
 }
 ```
+
+**Optional Header Fields (Display in ticket header):**
+```json
+{
+  "NF525": "FF12345678901234567",
+  "TVA_intra": "FR12345678901",
+  "NAF_code": "5610A",
+  "Origin_copy_number": "1",
+  "Order_number": "ORD-2026-001"
+}
+```
+
+**Optional Card Payment Details (When payment method is CARD):**
+```json
+{
+  "CardDetails": {
+    "merchant_name": "NEPTING",
+    "transaction_type": "CONTACTLESS DEBIT",
+    "date_time": "23/01/2026 09:40:37",
+    "terminal_id": "340001999100",
+    "merchant_id": "1999188",
+    "card_scheme": "MASTERCARD",
+    "AID": "A0000000041010",
+    "masked_pan": "############9517",
+    "authorization_number": "4e6d3",
+    "total_amount": "6,00 EUR",
+    "receipt_type": "CUSTOMER COPY",
+    "sequence_number": "1508 1652"
+  }
+}
+```
+
+The receipt will automatically display:
+- Line Count: Number of menu items
+- Item Count: Total quantity of items ordered
+
+**Menu Item Structure:**
 ```json
 {
   "NameProduct": "Product Name",
@@ -324,6 +364,12 @@ For endpoints that require authentication:
 **Database Collection:** `Tiquer`
 
 **Important:** If a ticket with same IdCRM, Date, idTiquer, and HeureTicket exists, it will NOT be updated.
+
+**Footer Display Information:**
+The ticket receipt footer automatically displays:
+- **Line Count** - Number of items in the Menu array
+- **Item Count** - Total quantity of all items (sum of all QtyProduct)
+- **Signature** - Optional signature field (displays below line/item count if provided)
 
 ---
 

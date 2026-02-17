@@ -830,13 +830,13 @@
                         <pre><code class="language-json">{
   "IdCRM": "2435",
   "Date": "20251213",
-  "idTiquer": "30",
+  "idTiquer": 30,
   "HeureTicket": "15:21",
   "TTC": 51.49,
   "Menu": [
     {
       "NameProduct": "MENU SANDWICH",
-      "TTC": 0,
+      "TTC": 18.00,
       "QtyProduct": 1,
       "Sup": [
         {
@@ -845,19 +845,45 @@
           "TTC": 8.9
         }
       ]
+    },
+    {
+      "NameProduct": "DRINK",
+      "TTC": 5.99,
+      "QtyProduct": 1
     }
   ],
   "Totals": {
-    "Total_Ht": 45.90,
-    "Total_TVA": 5.59,
+    "Total_Ht": 46.81,
+    "Total_TVA": 4.68,
     "Total_TTC": 51.49
   },
   "PaymentMethods": [
     {
-      "payment_method": "CASH",
+      "payment_method": "CARD",
       "amount": 51.49
     }
-  ]
+  ],
+  "NF525": "123456789",
+  "TVA_intra": "FR98765432101",
+  "NAF_code": "5610C",
+  "Origin_copy_number": "001",
+  "Order_number": "ORD-2026-001",
+  "ConsumptionMode": "SUR PLACE",
+  "CardDetails": {
+    "merchant_name": "RESTAURANT NAME",
+    "transaction_type": "CONTACTLESS DEBIT",
+    "date_time": "13/12/2025 15:21:30",
+    "terminal_id": "340001999100",
+    "merchant_id": "1999188",
+    "card_scheme": "MASTERCARD",
+    "AID": "A0000000041010",
+    "masked_pan": "############9517",
+    "authorization_number": "4e6d3",
+    "total_amount": "51,49 EUR",
+    "receipt_type": "CUSTOMER COPY",
+    "sequence_number": "1508 1652"
+  },
+  "Signature": "John Doe"
 }</code></pre>
                     </div>
 
@@ -904,6 +930,41 @@
                             <tr>
                                 <td><span class="param-name">PaymentMethods</span></td>
                                 <td><span class="param-type">array</span></td>
+                                <td><span class="badge optional">No</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="param-name">NF525</span></td>
+                                <td><span class="param-type">string</span></td>
+                                <td><span class="badge optional">No</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="param-name">TVA_intra</span></td>
+                                <td><span class="param-type">string</span></td>
+                                <td><span class="badge optional">No</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="param-name">NAF_code</span></td>
+                                <td><span class="param-type">string</span></td>
+                                <td><span class="badge optional">No</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="param-name">Origin_copy_number</span></td>
+                                <td><span class="param-type">string</span></td>
+                                <td><span class="badge optional">No</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="param-name">Order_number</span></td>
+                                <td><span class="param-type">string</span></td>
+                                <td><span class="badge optional">No</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="param-name">CardDetails</span></td>
+                                <td><span class="param-type">object</span></td>
+                                <td><span class="badge optional">No</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="param-name">Signature</span></td>
+                                <td><span class="param-type">string</span></td>
                                 <td><span class="badge optional">No</span></td>
                             </tr>
                         </tbody>
@@ -972,6 +1033,44 @@
       "amount": 21.49
     }
   ]
+}</code></pre>
+                    </div>
+
+                    <h3 style="margin-top: 24px; margin-bottom: 12px; font-size: 14px; color: var(--text); font-weight: 600;">Optional Header & Footer Fields</h3>
+                    <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 12px;">Display additional information in ticket header (sent with request):</p>
+                    <div class="code-block">
+                        <pre><code class="language-json">{
+  "NF525": "FF12345678901234567",
+  "TVA_intra": "FR12345678901",
+  "NAF_code": "5610A",
+  "Origin_copy_number": "1",
+  "Order_number": "ORD-2026-001"
+}</code></pre>
+                    </div>
+                    <p style="color: var(--text-muted); font-size: 13px; margin: 12px 0;"><strong style="color: var(--text);">Auto-Calculated Footer Fields:</strong></p>
+                    <ul class="feature-list">
+                        <li><code style="color: var(--accent);">Line Count</code> - Automatically calculated from number of items in Menu array</li>
+                        <li><code style="color: var(--accent);">Item Count</code> - Total quantity of items (sum of all QtyProduct)</li>
+                    </ul>
+
+                    <h3 style="margin-top: 24px; margin-bottom: 12px; font-size: 14px; color: var(--text); font-weight: 600;">Optional Card Payment Details</h3>
+                    <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 12px;">Include detailed card transaction information (displays when payment method is CARD):</p>
+                    <div class="code-block">
+                        <pre><code class="language-json">{
+  "CardDetails": {
+    "merchant_name": "NEPTING",
+    "transaction_type": "CONTACTLESS DEBIT",
+    "date_time": "23/01/2026 09:40:37",
+    "terminal_id": "340001999100",
+    "merchant_id": "1999188",
+    "card_scheme": "MASTERCARD",
+    "AID": "A0000000041010",
+    "masked_pan": "############9517",
+    "authorization_number": "4e6d3",
+    "total_amount": "6,00 EUR",
+    "receipt_type": "CUSTOMER COPY",
+    "sequence_number": "1508 1652"
+  }
 }</code></pre>
                     </div>
                 </div>
