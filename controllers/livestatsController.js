@@ -1141,7 +1141,7 @@ res.send(htmlContent.replace(/undefined/g, ''));
       const idTiquer = req.params.idTiquer;
       const db = await connectToDatabase();
       const collection = db.collection('Tiquer');
-      const ticket = await collection.findOne({ IdCRM: idCRM, Date: date, idTiquer: parseInt(idTiquer) });
+      const ticket = await collection.findOne({ IdCRM: parseInt(idCRM) || idCRM, Date: date, idTiquer: parseInt(idTiquer) });
       
       if (!ticket) {
         return res.status(404).send('<html><body>Ticket not found</body></html>');
@@ -1343,18 +1343,17 @@ res.send(htmlContent.replace(/undefined/g, ''));
                   <p style="margin: 0;">${ticket.merchant_name || ''}</p>
                   <p style="margin: 4px 0;">${ticket.merchant_address || ''}</p>
                   <p style="margin: 4px 0;">SIRET: ${ticket.SIRET || ''}</p>
-                  <p style="margin: 4px 0;">Ticket N°: ${ticket.idTiquer}</p>
+                  ${ticket.TVA_intra ? `<p style="margin: 4px 0;">TVA: ${ticket.TVA_intra}</p>` : ''}
+                  ${ticket.NAF_code ? `<p style="margin: 4px 0;">NAF: ${ticket.NAF_code}</p>` : ''}
               </div>
               <div class="header-info">
-                  ${ticket.NF525 ? `<p>NF525: ${ticket.NF525}</p>` : ''}
-                  ${ticket.TVA_intra ? `<p>TVA: ${ticket.TVA_intra}</p>` : ''}
-                  ${ticket.NAF_code ? `<p>NAF: ${ticket.NAF_code}</p>` : ''}
                   ${(ticket.copy_type || ticket.copy_number) ? `<p>Copy${ticket.copy_type ? ` ${ticket.copy_type}` : ''}${ticket.copy_number ? ` N° : ${ticket.copy_number}` : ''}</p>` : ''}
-                  ${ticket.Order_number ? `<p>Order N°: ${ticket.Order_number}</p>` : ''}
+                  <p>Ticket N°: ${ticket.idTiquer}</p>
               </div>
               <div class="ticket-details">
                   <p style='margin-top: 4px;'>${formattedDate || ''} ${ticket.HeureTicket || ''}</p>
                   <p>Servi par: ADMIN</p>
+                  ${ticket.Order_number ? `<p style="margin-top: 4px;">Order N°: ${ticket.Order_number}</p>` : ''}
               </div>
               <div class="items-list">
                   <table>
@@ -1448,7 +1447,7 @@ res.send(htmlContent.replace(/undefined/g, ''));
                           </tr>
                           <tr style="font-weight: bold; border-top: 1px solid #333;">
                               <td>TOTAL</td>
-                              <td style="text-align: right;">${ticket.TTC} ${ticket.currency || ticket.devise || ''}</td>
+                              <td style="text-align: right;">${(ticket.Totals?.Total_TTC || 0).toFixed(2)} ${ticket.currency || ticket.devise || ''}</td>
                           </tr>
                       </tbody>
                   </table>
@@ -1541,6 +1540,9 @@ res.send(htmlContent.replace(/undefined/g, ''));
               <div style="text-align: center; margin-top: 12px; padding-top: 8px; border-top: 1px solid #ddd; font-size: 10px;">
                   <p>MERCI DE VOTRE VISITE</p>
               </div>
+              ${ticket.NF525 ? `<div style="text-align: center; margin-top: 12px; padding-top: 8px; font-size: 9px; color: #333;">
+                  <p>NF525: ${ticket.NF525}</p>
+              </div>` : ''}
               <div style="text-align: center; margin-top: 12px; padding-top: 8px; font-size: 9px; color: #333;">
                   <p>RAMACAISSE Version logiciel : ${ticket.software_version || 'N/A'}</p>
                   <p>Conforme à la loi anti-fraude TVA (BOI-TVA-DECLA-30-10-30)</p>
