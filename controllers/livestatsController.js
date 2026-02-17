@@ -234,9 +234,9 @@ const UpdateTiquer = async (req, res) => {
 
     try {
       // Validate required fields
-      if (!data.IdCRM || !data.Date || !data.idTiquer || !data.HeureTicket || !data.Totals) {
-        console.error("Missing required fields:", { IdCRM: data.IdCRM, Date: data.Date, idTiquer: data.idTiquer, HeureTicket: data.HeureTicket, Totals: data.Totals });
-        return res.status(400).json({ error: "Missing required fields: IdCRM, Date, idTiquer, HeureTicket, Totals" });
+      if (!data.IdCRM || !data.Date || !data.idTiquer || !data.HeureTicket || !data.Totals || !data.currency || !data.merchant_name || !data.merchant_address || !data.SIRET) {
+        console.error("Missing required fields:", { IdCRM: data.IdCRM, Date: data.Date, idTiquer: data.idTiquer, HeureTicket: data.HeureTicket, Totals: data.Totals, currency: data.currency, merchant_name: data.merchant_name, merchant_address: data.merchant_address, SIRET: data.SIRET });
+        return res.status(400).json({ error: "Missing required fields: IdCRM, Date, idTiquer, HeureTicket, Totals, currency, merchant_name, merchant_address, SIRET" });
       }
 
       // Validate Totals structure
@@ -1339,20 +1339,22 @@ res.send(htmlContent);
           });
           htmlContent += `
           <div class="ticket">
+              <div class="merchant-info" style="text-align: center; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #333; font-weight: bold;">
+                  <p style="margin: 0;">${ticket.merchant_name || ''}</p>
+                  <p style="margin: 4px 0;">${ticket.merchant_address || ''}</p>
+                  <p style="margin: 4px 0;">SIRET: ${ticket.SIRET || ''}</p>
+                  <p style="margin: 4px 0;">Ticket N°: ${ticket.idTiquer}</p>
+              </div>
               <div class="header-info">
                   ${ticket.NF525 ? `<p>NF525: ${ticket.NF525}</p>` : ''}
                   ${ticket.TVA_intra ? `<p>TVA: ${ticket.TVA_intra}</p>` : ''}
                   ${ticket.NAF_code ? `<p>NAF: ${ticket.NAF_code}</p>` : ''}
-                  ${ticket.Origin_copy_number ? `<p>Origin Copy N°: ${ticket.Origin_copy_number}</p>` : ''}
+                  ${(ticket.copy_type || ticket.copy_number) ? `<p>Copy${ticket.copy_type ? ` ${ticket.copy_type}` : ''}${ticket.copy_number ? ` N° : ${ticket.copy_number}` : ''}</p>` : ''}
                   ${ticket.Order_number ? `<p>Order N°: ${ticket.Order_number}</p>` : ''}
               </div>
               <div class="ticket-details">
-                  <p>${ticket.NomSociete || ''}</p>
-                  <p>${ticket.sAdress || ''}</p>
-                  <p>${ticket.ville || ''}</p>
                   <p style='margin-top: 4px;'>${formattedDate} ${ticket.HeureTicket}</p>
                   <p>Servi par: ADMIN</p>
-                  <h1>TICKET: ${ticket.idTiquer}</h1>
               </div>
               <div class="items-list">
                   <table>
@@ -1374,8 +1376,8 @@ res.send(htmlContent);
                       <tbody>
                           <tr>
                               <td>${item.QtyProduct}x ${item.NameProduct}</td>
-                              <td style="text-align: right;">${item.TTC > 0 ? item.TTC : ''}</td>
-                              <td style="text-align: right;">${item.TTC > 0 ? (item.QtyProduct * item.TTC).toFixed(2) : ''}</td>
+                              <td style="text-align: right;">${item.TTC > 0 ? item.TTC + ' ' + (ticket.currency || ticket.devise || '') : ''}</td>
+                              <td style="text-align: right;">${item.TTC > 0 ? (item.QtyProduct * item.TTC).toFixed(2) + ' ' + (ticket.currency || ticket.devise || '') : ''}</td>
                           </tr>
                       </tbody>
                   </table>
@@ -1388,8 +1390,8 @@ res.send(htmlContent);
                           <tbody>
                               <tr>
                                   <td style="padding-left: 12px;">• ${option.NameProduct}</td>
-                                  <td style="text-align: right;">${option.TTC > 0 ? option.TTC : ''}</td>
-                                  <td style="text-align: right;">${option.TTC > 0 ? (option.TTC * option.QtyProduct).toFixed(2) : ''}</td>
+                                  <td style="text-align: right;">${option.TTC > 0 ? option.TTC + ' ' + (ticket.currency || ticket.devise || '') : ''}</td>
+                                  <td style="text-align: right;">${option.TTC > 0 ? (option.TTC * option.QtyProduct).toFixed(2) + ' ' + (ticket.currency || ticket.devise || '') : ''}</td>
                               </tr>
                           </tbody>
                       </table>
@@ -1405,8 +1407,8 @@ res.send(htmlContent);
                           <tbody>
                               <tr>
                                   <td style="padding-left: 12px;">• ${option.NameProduct}</td>
-                                  <td style="text-align: right;">${option.TTC}</td>
-                                  <td style="text-align: right;">${(option.TTC * option.QtyProduct).toFixed(2)}</td>
+                                  <td style="text-align: right;">${option.TTC + ' ' + (ticket.currency || ticket.devise || '')}</td>
+                                  <td style="text-align: right;">${(option.TTC * option.QtyProduct).toFixed(2) + ' ' + (ticket.currency || ticket.devise || '')}</td>
                               </tr>
                           </tbody>
                       </table>
@@ -1421,8 +1423,8 @@ res.send(htmlContent);
                           <tbody>
                               <tr>
                                   <td style="padding-left: 12px;">+ ${option.QtyProduct > 0 ? option.QtyProduct + 'x ' : ''}${option.NameProduct}</td>
-                                  <td style="text-align: right;">${option.TTC > 0 ? option.TTC : ''}</td>
-                                  <td style="text-align: right;">${option.TTC > 0 ? (option.TTC * option.QtyProduct).toFixed(2) : ''}</td>
+                                  <td style="text-align: right;">${option.TTC > 0 ? option.TTC + ' ' + (ticket.currency || ticket.devise || '') : ''}</td>
+                                  <td style="text-align: right;">${option.TTC > 0 ? (option.TTC * option.QtyProduct).toFixed(2) + ' ' + (ticket.currency || ticket.devise || '') : ''}</td>
                               </tr>
                           </tbody>
                       </table>
@@ -1438,15 +1440,15 @@ res.send(htmlContent);
                       <tbody>
                           <tr>
                               <td>Subtotal (HT)</td>
-                              <td style="text-align: right;">${totalHT.toFixed(2)} ${ticket.devise || ''}</td>
+                              <td style="text-align: right;">${totalHT.toFixed(2)} ${ticket.currency || ticket.devise || ''}</td>
                           </tr>
                           <tr>
                               <td>Tax (VAT)</td>
-                              <td style="text-align: right;">${totalTVA.toFixed(2)} ${ticket.devise || ''}</td>
+                              <td style="text-align: right;">${totalTVA.toFixed(2)} ${ticket.currency || ticket.devise || ''}</td>
                           </tr>
                           <tr style="font-weight: bold; border-top: 1px solid #333;">
                               <td>TOTAL</td>
-                              <td style="text-align: right;">${ticket.TTC} ${ticket.devise || ''}</td>
+                              <td style="text-align: right;">${ticket.TTC} ${ticket.currency || ticket.devise || ''}</td>
                           </tr>
                       </tbody>
                   </table>
@@ -1467,7 +1469,7 @@ res.send(htmlContent);
               htmlContent += `
                           <tr>
                               <td>${method}</td>
-                              <td style="text-align: right;">${amount} ${ticket.devise || ''}</td>
+                              <td style="text-align: right;">${amount} ${ticket.currency || ticket.devise || ''}</td>
                           </tr>
               `;
             });
@@ -1538,6 +1540,10 @@ res.send(htmlContent);
           htmlContent += `
               <div style="text-align: center; margin-top: 12px; padding-top: 8px; border-top: 1px solid #ddd; font-size: 10px;">
                   <p>MERCI DE VOTRE VISITE</p>
+              </div>
+              <div style="text-align: center; margin-top: 12px; padding-top: 8px; font-size: 9px; color: #333;">
+                  <p>RAMACAISSE Version logiciel : ${ticket.software_version || 'N/A'}</p>
+                  <p>Conforme à la loi anti-fraude TVA (BOI-TVA-DECLA-30-10-30)</p>
               </div>
           </div>
           `;
@@ -1646,7 +1652,6 @@ res.send(htmlContent);
                 <p>ALIZETH DIGITAL EL MAY DJERBA 4175 DJERBA</p>
                 <p style='padding-left: 220px;'>${formattedDate} ${ticket.HeureTicket}</p>
                 <p>Servi par: ADMIN</p>
-                <h1><b>TICKET: ${ticket.idTiquer}</b></h1>
             </div>
             <div class="items-list">
                 <ul>

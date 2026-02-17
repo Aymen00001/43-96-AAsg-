@@ -193,6 +193,10 @@ For endpoints that require authentication:
   "idTiquer": "30",
   "HeureTicket": "15:21",
   "TTC": 51.49,
+  "currency": "€",
+  "merchant_name": "MISTER GRILL",
+  "merchant_address": "71 COURS DES ROCHES",
+  "SIRET": "12345678901234",
   "ConsumptionMode": "SUR PLACE",
   "Menu": [
     {
@@ -247,6 +251,10 @@ For endpoints that require authentication:
 - `HeureTicket` - Ticket time
 - `Menu` - Array of menu items
 - `Totals` - Totals object with Total_Ht, Total_TVA, and Total_TTC
+- `currency` - Currency symbol (e.g., "€", "$")
+- `merchant_name` - Name of the merchant/restaurant
+- `merchant_address` - Address of the merchant/restaurant
+- `SIRET` - SIRET identification number
 
 **Optional Fields:**
 - `TTC` - Total with tax
@@ -258,8 +266,11 @@ For endpoints that require authentication:
 - `sAdress` - Address
 - `ville` - City
 - `NF525` - NF525 compliance number (displays in ticket header)
+- `copy_type` - Type of copy: "Original" or "Duplicata" (displays in ticket header)
+- `copy_number` - Copy number/sequence (displays in ticket header)
 - `Signature` - Customer or staff signature line (displays in ticket footer)
 - `CardDetails` - Detailed card transaction information (displays when payment method is CARD)
+- `software_version` - Software version number (displays at end of receipt with TVA compliance message)
 
 **Payment Method Structure (New Format - Recommended):**
 ```json
@@ -300,7 +311,8 @@ For endpoints that require authentication:
   "NF525": "FF12345678901234567",
   "TVA_intra": "FR12345678901",
   "NAF_code": "5610A",
-  "Origin_copy_number": "1",
+  "copy_type": "Original",
+  "copy_number": "1",
   "Order_number": "ORD-2026-001"
 }
 ```
@@ -370,6 +382,27 @@ The ticket receipt footer automatically displays:
 - **Line Count** - Number of items in the Menu array
 - **Item Count** - Total quantity of all items (sum of all QtyProduct)
 - **Signature** - Optional signature field (displays below line/item count if provided)
+
+**Merchant Info Display Section:**
+The ticket header displays merchant/store information as follows:
+- **merchant_name** - Store or restaurant name (bold, centered)
+- **merchant_address** - Full address (bold, centered)
+- **SIRET** - SIRET identification number (bold, centered)
+- **Ticket N°** - Ticket number (auto-filled from idTiquer) (bold, centered)
+
+All four merchant info fields are required and display with a bottom border separator.
+
+**Software Version Display (End of Receipt):**
+The ticket displays software compliance information at the very end:
+- **software_version** - Software version number (displays as: "RAMACAISSE Version logiciel : [version]")
+- TVA compliance message: "Conforme à la loi anti-fraude TVA (BOI-TVA-DECLA-30-10-30)"
+
+Example display:
+```
+MERCI DE VOTRE VISITE
+RAMACAISSE Version logiciel : 2.1.0
+Conforme à la loi anti-fraude TVA (BOI-TVA-DECLA-30-10-30)
+```
 
 ---
 
@@ -1141,6 +1174,10 @@ curl -X POST http://localhost:8002/update-ticket \
     "idTiquer": "45",
     "HeureTicket": "14:30",
     "TTC": 25.50,
+    "currency": "€",
+    "merchant_name": "MISTER GRILL",
+    "merchant_address": "71 COURS DES ROCHES",
+    "SIRET": "12345678901234",
     "Menu": []
   }'
 ```
@@ -1188,6 +1225,10 @@ Stores individual ticket records
 - `idTiquer` - Ticket ID
 - `HeureTicket` - Time
 - `TTC` - Total with tax
+- `currency` - Currency symbol
+- `merchant_name` - Merchant/restaurant name
+- `merchant_address` - Merchant/restaurant address
+- `SIRET` - SIRET identification number
 - `Menu[]` - Line items
 - `Totals` - Totals object
 - `ModePaiement[]` - Payment methods

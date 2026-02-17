@@ -825,65 +825,102 @@
                     <p class="endpoint-description">Creates or updates a ticket record. Does not update if ticket already exists.</p>
                     <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;"><strong>Deprecated:</strong> Previously <code style="color: var(--accent);">/UpdateTiquer</code></p>
                     
-                    <div class="params-title">Request Body</div>
+                    <div class="params-title">Request Body - Complete Example (All Attributes)</div>
                     <div class="code-block">
                         <pre><code class="language-json">{
   "IdCRM": "2435",
-  "Date": "20251213",
-  "idTiquer": 30,
-  "HeureTicket": "15:21",
-  "TTC": 51.49,
+  "Date": "20260217",
+  "idTiquer": 100,
+  "HeureTicket": "15:30",
+  "TTC": 62.99,
+  "currency": "€",
+  "merchant_name": "RESTAURANT PREMIUM",
+  "merchant_address": "123 CULINARY STREET, PARIS",
+  "SIRET": "12345678901234",
+  "ConsumptionMode": "SUR PLACE",
   "Menu": [
     {
-      "NameProduct": "MENU SANDWICH",
-      "TTC": 18.00,
+      "NameProduct": "MENU SANDWICH DELUXE",
+      "TTC": 0,
       "QtyProduct": 1,
       "Sup": [
         {
-          "NameProduct": "MENU CHICKEN TANDOORI",
+          "NameProduct": "EXTRA CHICKEN TANDOORI",
           "QtyProduct": 1,
-          "TTC": 8.9
+          "TTC": 8.90
+        },
+        {
+          "NameProduct": "CHEESE TOPPING",
+          "QtyProduct": 1,
+          "TTC": 2.50
+        }
+      ],
+      "Gredient": [
+        {
+          "NameProduct": "PAIN COMPLET",
+          "QtyProduct": 1,
+          "TTC": 0
+        },
+        {
+          "NameProduct": "SAUCE MAISON",
+          "QtyProduct": 1,
+          "TTC": 0
+        }
+      ],
+      "Gredient2": [
+        {
+          "NameProduct": "SANS TOMATE",
+          "QtyProduct": 0,
+          "TTC": 0
         }
       ]
     },
     {
-      "NameProduct": "DRINK",
+      "NameProduct": "BOISSON PREMIUM",
       "TTC": 5.99,
-      "QtyProduct": 1
+      "QtyProduct": 2,
+      "Sup": [],
+      "Gredient": [],
+      "Gredient2": []
     }
   ],
-  "Totals": {
-    "Total_Ht": 46.81,
-    "Total_TVA": 4.68,
-    "Total_TTC": 51.49
-  },
   "PaymentMethods": [
     {
       "payment_method": "CARD",
-      "amount": 51.49
+      "amount": 30.00
+    },
+    {
+      "payment_method": "CASH",
+      "amount": 32.99
     }
   ],
-  "NF525": "123456789",
-  "TVA_intra": "FR98765432101",
+  "Totals": {
+    "Total_Ht": 57.27,
+    "Total_TVA": 5.72,
+    "Total_TTC": 62.99
+  },
+  "NF525": "FF98765432109876",
+  "TVA_intra": "FR12345678901",
   "NAF_code": "5610C",
-  "Origin_copy_number": "001",
-  "Order_number": "ORD-2026-001",
-  "ConsumptionMode": "SUR PLACE",
+  "copy_type": "Original",
+  "copy_number": "1",
+  "Order_number": "ORD-2026-100",
+  "Signature": "John Customer",
+  "software_version": "2.1.0",
   "CardDetails": {
-    "merchant_name": "RESTAURANT NAME",
+    "merchant_name": "RESTAURANT PREMIUM",
     "transaction_type": "CONTACTLESS DEBIT",
-    "date_time": "13/12/2025 15:21:30",
+    "date_time": "17/02/2026 15:30:45",
     "terminal_id": "340001999100",
     "merchant_id": "1999188",
-    "card_scheme": "MASTERCARD",
+    "card_scheme": "VISA",
     "AID": "A0000000041010",
-    "masked_pan": "############9517",
-    "authorization_number": "4e6d3",
-    "total_amount": "51,49 EUR",
+    "masked_pan": "############4242",
+    "authorization_number": "5f7e4",
+    "total_amount": "30,00 EUR",
     "receipt_type": "CUSTOMER COPY",
-    "sequence_number": "1508 1652"
-  },
-  "Signature": "John Doe"
+    "sequence_number": "2100 1850"
+  }
 }</code></pre>
                     </div>
 
@@ -928,6 +965,26 @@
                                 <td><span class="badge required">Yes</span></td>
                             </tr>
                             <tr>
+                                <td><span class="param-name">currency</span></td>
+                                <td><span class="param-type">string</span></td>
+                                <td><span class="badge required">Yes</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="param-name">merchant_name</span></td>
+                                <td><span class="param-type">string</span></td>
+                                <td><span class="badge required">Yes</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="param-name">merchant_address</span></td>
+                                <td><span class="param-type">string</span></td>
+                                <td><span class="badge required">Yes</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="param-name">SIRET</span></td>
+                                <td><span class="param-type">string</span></td>
+                                <td><span class="badge required">Yes</span></td>
+                            </tr>
+                            <tr>
                                 <td><span class="param-name">PaymentMethods</span></td>
                                 <td><span class="param-type">array</span></td>
                                 <td><span class="badge optional">No</span></td>
@@ -948,7 +1005,12 @@
                                 <td><span class="badge optional">No</span></td>
                             </tr>
                             <tr>
-                                <td><span class="param-name">Origin_copy_number</span></td>
+                                <td><span class="param-name">copy_type</span></td>
+                                <td><span class="param-type">string ("Original" or "Duplicata")</span></td>
+                                <td><span class="badge optional">No</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="param-name">copy_number</span></td>
                                 <td><span class="param-type">string</span></td>
                                 <td><span class="badge optional">No</span></td>
                             </tr>
@@ -964,6 +1026,11 @@
                             </tr>
                             <tr>
                                 <td><span class="param-name">Signature</span></td>
+                                <td><span class="param-type">string</span></td>
+                                <td><span class="badge optional">No</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="param-name">software_version</span></td>
                                 <td><span class="param-type">string</span></td>
                                 <td><span class="badge optional">No</span></td>
                             </tr>
@@ -1036,6 +1103,15 @@
 }</code></pre>
                     </div>
 
+                    <h3 style="margin-top: 24px; margin-bottom: 12px; font-size: 14px; color: var(--text); font-weight: 600;">Merchant Info Section</h3>
+                    <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 12px;">All of the following fields are required and display in the ticket header (centered with bottom border):</p>
+                    <ul class="feature-list">
+                        <li><code style="color: var(--accent);">merchant_name</code> - Name of the merchant or restaurant (required)</li>
+                        <li><code style="color: var(--accent);">merchant_address</code> - Address of the merchant/restaurant (required)</li>
+                        <li><code style="color: var(--accent);">SIRET</code> - SIRET identification number (required)</li>
+                        <li><code style="color: var(--accent);">Ticket N°</code> - Auto-filled from idTiquer (required)</li>
+                    </ul>
+
                     <h3 style="margin-top: 24px; margin-bottom: 12px; font-size: 14px; color: var(--text); font-weight: 600;">Optional Header & Footer Fields</h3>
                     <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 12px;">Display additional information in ticket header (sent with request):</p>
                     <div class="code-block">
@@ -1043,7 +1119,8 @@
   "NF525": "FF12345678901234567",
   "TVA_intra": "FR12345678901",
   "NAF_code": "5610A",
-  "Origin_copy_number": "1",
+  "copy_type": "Original",
+  "copy_number": "1",
   "Order_number": "ORD-2026-001"
 }</code></pre>
                     </div>
