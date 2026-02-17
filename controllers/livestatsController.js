@@ -1109,7 +1109,7 @@ htmlContent += `
 </body>
 </html>  `;
 
-res.send(htmlContent);
+res.send(htmlContent.replace(/undefined/g, ''));
 }catch(err){
       console.log(err);
 }
@@ -1353,7 +1353,7 @@ res.send(htmlContent);
                   ${ticket.Order_number ? `<p>Order N°: ${ticket.Order_number}</p>` : ''}
               </div>
               <div class="ticket-details">
-                  <p style='margin-top: 4px;'>${formattedDate} ${ticket.HeureTicket}</p>
+                  <p style='margin-top: 4px;'>${formattedDate || ''} ${ticket.HeureTicket || ''}</p>
                   <p>Servi par: ADMIN</p>
               </div>
               <div class="items-list">
@@ -1375,9 +1375,9 @@ res.send(htmlContent);
                   <table>
                       <tbody>
                           <tr>
-                              <td>${item.QtyProduct}x ${item.NameProduct}</td>
-                              <td style="text-align: right;">${item.TTC > 0 ? item.TTC + ' ' + (ticket.currency || ticket.devise || '') : ''}</td>
-                              <td style="text-align: right;">${item.TTC > 0 ? (item.QtyProduct * item.TTC).toFixed(2) + ' ' + (ticket.currency || ticket.devise || '') : ''}</td>
+                              <td>${(item.QtyProduct || 0)}x ${(item.NameProduct || '')}</td>
+                              <td style="text-align: right;">${(item.TTC > 0) ? ((item.TTC || 0) + ' ' + (ticket.currency || ticket.devise || '')) : ''}</td>
+                              <td style="text-align: right;">${(item.TTC > 0) ? (((item.QtyProduct || 0) * (item.TTC || 0)).toFixed(2) + ' ' + (ticket.currency || ticket.devise || '')) : ''}</td>
                           </tr>
                       </tbody>
                   </table>
@@ -1389,9 +1389,9 @@ res.send(htmlContent);
                       <table>
                           <tbody>
                               <tr>
-                                  <td style="padding-left: 12px;">• ${option.NameProduct}</td>
-                                  <td style="text-align: right;">${option.TTC > 0 ? option.TTC + ' ' + (ticket.currency || ticket.devise || '') : ''}</td>
-                                  <td style="text-align: right;">${option.TTC > 0 ? (option.TTC * option.QtyProduct).toFixed(2) + ' ' + (ticket.currency || ticket.devise || '') : ''}</td>
+                                  <td style="padding-left: 12px;">• ${(option.NameProduct || '')}</td>
+                                  <td style="text-align: right;">${(option.TTC > 0) ? (((option.TTC || 0) + ' ' + (ticket.currency || ticket.devise || '')) || '') : ''}</td>
+                                  <td style="text-align: right;">${(option.TTC > 0) ? ((((option.TTC || 0) * (option.QtyProduct || 0)).toFixed(2) + ' ' + (ticket.currency || ticket.devise || '')) || '') : ''}</td>
                               </tr>
                           </tbody>
                       </table>
@@ -1406,9 +1406,9 @@ res.send(htmlContent);
                       <table>
                           <tbody>
                               <tr>
-                                  <td style="padding-left: 12px;">• ${option.NameProduct}</td>
-                                  <td style="text-align: right;">${option.TTC + ' ' + (ticket.currency || ticket.devise || '')}</td>
-                                  <td style="text-align: right;">${(option.TTC * option.QtyProduct).toFixed(2) + ' ' + (ticket.currency || ticket.devise || '')}</td>
+                                  <td style="padding-left: 12px;">• ${(option.NameProduct || '')}</td>
+                                  <td style="text-align: right;">${((option.TTC || 0) + ' ' + (ticket.currency || ticket.devise || '')) || ''}</td>
+                                  <td style="text-align: right;">${((((option.TTC || 0) * (option.QtyProduct || 0)).toFixed(2) + ' ' + (ticket.currency || ticket.devise || '')) || '')}</td>
                               </tr>
                           </tbody>
                       </table>
@@ -1422,9 +1422,9 @@ res.send(htmlContent);
                       <table>
                           <tbody>
                               <tr>
-                                  <td style="padding-left: 12px;">+ ${option.QtyProduct > 0 ? option.QtyProduct + 'x ' : ''}${option.NameProduct}</td>
-                                  <td style="text-align: right;">${option.TTC > 0 ? option.TTC + ' ' + (ticket.currency || ticket.devise || '') : ''}</td>
-                                  <td style="text-align: right;">${option.TTC > 0 ? (option.TTC * option.QtyProduct).toFixed(2) + ' ' + (ticket.currency || ticket.devise || '') : ''}</td>
+                                  <td style="padding-left: 12px;">+ ${((option.QtyProduct > 0) ? ((option.QtyProduct || 0) + 'x ') : '')}${(option.NameProduct || '')}</td>
+                                  <td style="text-align: right;">${(option.TTC > 0) ? ((option.TTC || 0) + ' ' + (ticket.currency || ticket.devise || '')) : ''}</td>
+                                  <td style="text-align: right;">${(option.TTC > 0) ? ((((option.TTC || 0) * (option.QtyProduct || 0)).toFixed(2) + ' ' + (ticket.currency || ticket.devise || '')) || '') : ''}</td>
                               </tr>
                           </tbody>
                       </table>
@@ -1464,12 +1464,12 @@ res.send(htmlContent);
                           </tr>
             `;
             paymentMethods.forEach(payment => {
-              const method = payment.payment_method || payment.ModePaimeent || 'Unknown';
-              const amount = payment.amount || payment.totalwithMode || 0;
+              const method = (payment.payment_method || payment.ModePaimeent || 'Unknown') || '';
+              const amount = (payment.amount || payment.totalwithMode || 0) || 0;
               htmlContent += `
                           <tr>
                               <td>${method}</td>
-                              <td style="text-align: right;">${amount} ${ticket.currency || ticket.devise || ''}</td>
+                              <td style="text-align: right;">${amount} ${(ticket.currency || ticket.devise || '')}</td>
                           </tr>
               `;
             });
@@ -1568,7 +1568,7 @@ res.send(htmlContent);
       </script>
       </html>
       `;
-      res.send(htmlContent);
+      res.send(htmlContent.replace(/undefined/g, ''));
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: "Internal Server Error" });
@@ -1801,7 +1801,7 @@ res.send(htmlContent);
     </body>
     </html>
     `;
-    res.send(htmlContent);
+    res.send(htmlContent.replace(/undefined/g, ''));
   };
 
   // New endpoint: Get payment statistics and aggregation
