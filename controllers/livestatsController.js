@@ -1343,7 +1343,7 @@ res.send(htmlContent.replace(/undefined/g, ''));
                   <p style="margin: 0;">${ticket.merchant_name || ''}</p>
                   <p style="margin: 4px 0;">${ticket.merchant_address || ''}</p>
                   <p style="margin: 4px 0;">SIRET: ${ticket.SIRET || ''}</p>
-                  ${ticket.TVA_intra ? `<p style="margin: 4px 0;">TVA: ${ticket.TVA_intra}</p>` : ''}
+                  ${ticket.TVA_intra ? `<p style="margin: 4px 0;">INTRA TVA: ${ticket.TVA_intra}</p>` : ''}
                   ${ticket.NAF_code ? `<p style="margin: 4px 0;">NAF: ${ticket.NAF_code}</p>` : ''}
               </div>
               <div class="header-info">
