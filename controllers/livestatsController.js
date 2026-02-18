@@ -284,6 +284,10 @@ const UpdateTiquer = async (req, res) => {
       const db = await connectToDatabase();
       const collection = db.collection('Tiquer');
 
+      // Normalize IdCRM to string for consistent storage and retrieval
+      data.IdCRM = String(data.IdCRM);
+      data.idTiquer = parseInt(data.idTiquer) || data.idTiquer;
+
       const query = { IdCRM: data.IdCRM, Date: data.Date, idTiquer: data.idTiquer, HeureTicket: data.HeureTicket };
       const result = await collection.findOne(query);
       
@@ -1136,12 +1140,12 @@ res.send(htmlContent.replace(/undefined/g, ''));
 
   const getTicketRestoById = async (req, res) => {
     try {
-      const idCRM = req.params.idCRM;
+      const idCRM = String(req.params.idCRM);
       const date = req.params.date;
-      const idTiquer = req.params.idTiquer;
+      const idTiquer = parseInt(req.params.idTiquer);
       const db = await connectToDatabase();
       const collection = db.collection('Tiquer');
-      const ticket = await collection.findOne({ IdCRM: parseInt(idCRM) || idCRM, Date: date, idTiquer: parseInt(idTiquer) });
+      const ticket = await collection.findOne({ IdCRM: idCRM, Date: date, idTiquer: idTiquer });
       
       if (!ticket) {
         return res.status(404).send('<html><body>Ticket not found</body></html>');
