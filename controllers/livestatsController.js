@@ -283,7 +283,7 @@ const UpdateTiquer = async (req, res) => {
 
       const db = await connectToDatabase();
       const collection = db.collection('Tiquer');
-
+      
       // Normalize IdCRM to string for consistent storage and retrieval
       data.IdCRM = String(data.IdCRM);
       data.idTiquer = parseInt(data.idTiquer) || data.idTiquer;
@@ -1039,7 +1039,7 @@ data.Menu.forEach(item => {
 htmlContent += `
 <div class="Ligne2"></div>
 <br><div>
-<text class="HTtext">Subtotal (HT) : ${data.Totals.Total_Ht ? data.Totals.Total_Ht : ''} ${data.devise} *** *** Tax (VAT) : ${data.Totals.Total_TVA ? data.Totals.Total_TVA : ''} ${data.devise}  </text></div>
+<text class="HTtext">Subtotal (HT) : ${data.Totals.Total_Ht ? data.Totals.Total_Ht : ''} ${data.devise} *** *** Tax : ${data.Totals.Total_TVA ? data.Totals.Total_TVA : ''} ${data.devise}  </text></div>
 <div class="DivtotalText">
   <text class="totalText"><b>TOTAL : ${data.Totals.Total_TTC ? data.Totals.Total_TTC : ''}  ${data.devise}</b> </text>
 </div>
@@ -1446,7 +1446,7 @@ res.send(htmlContent.replace(/undefined/g, ''));
                               <td style="text-align: right;">${totalHT.toFixed(2)} ${ticket.currency || ticket.devise || ''}</td>
                           </tr>
                           <tr>
-                              <td>Tax (VAT)</td>
+                              <td>Tax</td>
                               <td style="text-align: right;">${totalTVA.toFixed(2)} ${ticket.currency || ticket.devise || ''}</td>
                           </tr>
                           <tr style="font-weight: bold; border-top: 1px solid #333;">
@@ -1763,7 +1763,7 @@ res.send(htmlContent.replace(/undefined/g, ''));
             <td style='width: 280px;'>
               </td>
             <td >
-            <div '><span  style='padding: 10px;'>Tax (VAT):  </span>  ${totalTVA.toFixed(1)}${ticket.devise}</div>
+            <div '><span  style='padding: 10px;'>Tax:  </span>  ${totalTVA.toFixed(1)}${ticket.devise}</div>
           </td>
             </tr>
           </tbody>
