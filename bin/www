@@ -37,7 +37,9 @@ const io = socketIo(server, {
       'https://statistics.sc3makseb.universe.wf',
       'http://statistics.sc3makseb.universe.wf',
       'http://192.168.1.2:3001',
-      'http://192.168.1.45:3001'
+      'http://192.168.1.45:3001',
+      'https://statisticsv2.makseb.fr',
+      'http://statisticsv2.makseb.fr'
     ],
     methods: ['GET', 'POST'],
     credentials: true
