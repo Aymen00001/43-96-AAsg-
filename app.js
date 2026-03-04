@@ -19,13 +19,15 @@ app.use(cors({
     'http://harrag09.github.io',
     'http://localhost:3002',
     'http://statistic.makseb.fr',
-    'http://statistic.makseb.fr',
+    'https://statistic.makseb.fr',
     'http://localhost:3001',
     'http://statistic.sc3makseb.universe.wf',
-    'http://statistic.sc3makseb.universe.wf',
+    'https://statistic.sc3makseb.universe.wf',
     'http://localhost:3000',
     'http://192.168.1.2:3001',
-    'http://192.168.1.45:3001'
+    'http://192.168.1.45:3001',
+    'https://statisticsv2.makseb.fr',
+    'http://statisticsv2.makseb.fr'
   ],
   methods: 'GET, POST, OPTIONS, PUT, PATCH, DELETE',
   credentials: true,
