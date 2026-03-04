@@ -7,12 +7,13 @@
 var app = require('../app');
 var debug = require('debug')('backend:server');
 var http = require('http');
+const socketIo = require('socket.io');
 
 /**
  * Get port from environment and store in Express.
  */
 
-var port = normalizePort(process.env.PORT || '3000');
+var port = normalizePort(process.env.PORT || '8002');
 app.set('port', port);
 
 /**
@@ -20,6 +21,31 @@ app.set('port', port);
  */
 
 var server = http.createServer(app);
+
+/**
+ * Setup Socket.io
+ */
+const io = socketIo(server, {
+  cors: {
+    origin: [
+      'https://harrag09.github.io',
+      'http://localhost:3002',
+      'https://statistics.makseb.fr',
+      'http://statistics.makseb.fr',
+      'http://localhost:3001',
+      'http://localhost:3000',
+      'https://statistics.sc3makseb.universe.wf',
+      'http://statistics.sc3makseb.universe.wf',
+      'http://192.168.1.2:3001',
+      'http://192.168.1.45:3001'
+    ],
+    methods: ['GET', 'POST'],
+    credentials: true
+  }
+});
+
+// Make io available to app
+app.io = io;
 
 /**
  * Listen on provided port, on all network interfaces.

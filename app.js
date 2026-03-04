@@ -41,7 +41,10 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Connect to the database
-connectToDatabase();
+connectToDatabase().catch(error => {
+  console.error("Failed to connect to database:", error.message);
+  console.warn("Server will continue running without database connection");
+});
 
 
 
@@ -122,11 +125,14 @@ app.get('/heartbeat', (req, res) => {
 
 const PORT = 8002;
 
+// Export app for bin/www to use
+module.exports = app;
+
 // Start the server
-const server = app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
- 
-});
+// const server = app.listen(PORT, () => {
+//   console.log(`Server is running on port ${PORT}`);
+// 
+// });
 // const io = socketIo(server, {
 //   cors: {
 //     origin: [

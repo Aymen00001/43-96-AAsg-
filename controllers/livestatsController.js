@@ -3,6 +3,80 @@
   const fs = require('fs');
   const path = require('path');
 
+// Multilingual Ticket Translations (restaurant-style labels)
+const ticketTranslations = {
+  en: {
+    article: 'ARTICLE', pu: 'PU', total: 'TOTAL',
+    paymentMethod: 'PAYMENT METHOD', amount: 'AMOUNT',
+    subtotalHT: 'Subtotal (HT)', tax: 'Tax', totalLabel: 'TOTAL',
+    servedBy: 'Served by', orderNo: 'Order No', category: 'CATEGORY',
+    lines: 'Lines', items: 'Items', signature: 'Signature',
+    copy: 'Copy', ticketNo: 'Ticket No', merchant: 'Merchant',
+    cardType: 'Card Type', terminalId: 'Terminal', thankYou: 'THANK YOU FOR YOUR VISIT',
+    category: 'CATEGORY', line: 'Line', item: 'item',
+    dineIn: 'Dine-in', takeaway: 'Takeaway', delivery: 'Delivery'
+  },
+  es: {
+    article: 'ARTÍCULO', pu: 'PU', total: 'TOTAL',
+    paymentMethod: 'MÉTODO DE PAGO', amount: 'CANTIDAD',
+    subtotalHT: 'Subtotal (ST)', tax: 'Impuesto', totalLabel: 'TOTAL',
+    servedBy: 'Atendido por', orderNo: 'Pedido N°', category: 'CATEGORÍA',
+    lines: 'Líneas', items: 'Artículos', signature: 'Firma',
+    copy: 'Copia', ticketNo: 'Ticket N°', merchant: 'Comerciante',
+    cardType: 'Tipo de Tarjeta', terminalId: 'Terminal', thankYou: 'GRACIAS POR SU VISITA',
+    category: 'CATEGORÍA', line: 'Línea', item: 'artículo',
+    dineIn: 'En sala', takeaway: 'Para llevar', delivery: 'Entrega'
+  },
+  ar: {
+    article: 'المادة', pu: 'السعر', total: 'الإجمالي',
+    paymentMethod: 'طريقة الدفع', amount: 'المبلغ',
+    subtotalHT: 'الإجمالي الفرعي (قبل الضريبة)', tax: 'الضريبة', totalLabel: 'الإجمالي',
+    servedBy: 'خدمة من', orderNo: 'رقم الطلب', category: 'الفئة',
+    lines: 'الأسطر', items: 'العناصر', signature: 'التوقيع',
+    copy: 'نسخة', ticketNo: 'رقم التذكرة', merchant: 'التاجر',
+    cardType: 'نوع البطاقة', terminalId: 'الطرفية', thankYou: 'شكرا لزيارتك',
+    category: 'الفئة', line: 'السطر', item: 'عنصر',
+    dineIn: 'في المطعم', takeaway: 'للأخذ', delivery: 'التوصيل'
+  },
+  fr: {
+    article: 'ARTICLE', pu: 'PU', total: 'TOTAL',
+    paymentMethod: 'MODE DE PAIEMENT', amount: 'MONTANT',
+    subtotalHT: 'Sous-total (HT)', tax: 'Taxe', totalLabel: 'TOTAL',
+    servedBy: 'Servi par', orderNo: 'Commande N°', category: 'CATÉGORIE',
+    lines: 'Lignes', items: 'Articles', signature: 'Signature',
+    copy: 'Copie', ticketNo: 'Ticket N°', merchant: 'Commerçant',
+    cardType: 'Type de Carte', terminalId: 'Terminal', thankYou: 'MERCI DE VOTRE VISITE',
+    category: 'CATÉGORIE', line: 'Ligne', item: 'article',
+    dineIn: 'Sur place', takeaway: 'À emporter', delivery: 'Livraison'
+  }
+};
+
+const getTranslation = (lang, key) => {
+  const language = ticketTranslations[lang] || ticketTranslations['en'];
+  return language[key] || ticketTranslations['en'][key] || key;
+};
+
+const getTranslatedMode = (mode, lang) => {
+  if (!mode) return getTranslation(lang, 'dineIn');
+  const modeUpper = mode.toUpperCase();
+  const modeMap = {
+    'SUR PLACE': 'dineIn',
+    'ON-SITE': 'dineIn',
+    'ON SITE': 'dineIn',
+    'EN SITIO': 'dineIn',
+    'À EMPORTER': 'takeaway',
+    'TAKEAWAY': 'takeaway',
+    'PARA LLEVAR': 'takeaway',
+    'LIVRAISON': 'delivery',
+    'DELIVERY': 'delivery',
+    'ENTREGA': 'delivery',
+    'TO-GO': 'takeaway',
+    'TAKE-AWAY': 'takeaway'
+  };
+  const key = modeMap[modeUpper] || 'dineIn';
+  return getTranslation(lang, key);
+};
+
 const transporter = nodemailer.createTransport({
   host: 'makseb.fr',
   port: 465,
@@ -340,14 +414,27 @@ const UpdateTiquer = async (req, res) => {
   };
 
   const getLivestatByIdandDate = async (req, res) => {
+    const timestamp = new Date().toISOString();
+    console.log(`\n[${timestamp}] 🔵 getLivestatByIdandDate ENDPOINT HIT`);
+    console.log(`📦 Query params:`, req.query);
+    
     try {
       const idCRM = req.query.idCRM; 
       const startDateString = req.query.date1;
       const endDateString = req.query.date2;
+
+      console.log(`🔍 Parsed values:`);
+      console.log(`   - idCRM: "${idCRM}" (type: ${typeof idCRM})`);
+      console.log(`   - date1: "${startDateString}"`);
+      console.log(`   - date2: "${endDateString}"`);
 
       const db = await connectToDatabase();
       const collection = db.collection('livestats');
 
+      console.log(`📊 Executing MongoDB aggregation query...`);
+      console.log(`   - IdCRM filter: "${idCRM}"`);
+      console.log(`   - Date range: ${startDateString} to ${endDateString}`);
+
       const livestats = await collection.aggregate([
         {
           $match: {
@@ -357,27 +444,47 @@ const UpdateTiquer = async (req, res) => {
         },
       ]).toArray();
 
+      console.log(`✅ MongoDB query returned ${livestats.length} records`);
+
       if (livestats.length === 0) {
-    
-        return res.status(200).json({ msg: "Rien de statistique trouvé pour ces dates spécifiées", success: true ,data:livestats});
+        console.log(`⚠️  No data found for idCRM="${idCRM}" in date range`);
+        const response = { msg: "Rien de statistique trouvé pour ces dates spécifiées", success: true ,data:livestats};
+        console.log(`📤 Sending response:`, JSON.stringify(response, null, 2));
+        return res.status(200).json(response);
       } else {
+        console.log(`📈 Found data! Calculating sums...`);
         const sumsForEachLine = calculateSumsForEachLine(livestats);
-        res.status(200).json({ msg:"Des statistiques existent pour ces dates spécifiées", success: true ,data:sumsForEachLine});
+        const response = { msg:"Des statistiques existent pour ces dates spécifiées", success: true ,data:sumsForEachLine};
+        console.log(`📤 Sending response:`, JSON.stringify(response, null, 2));
+        res.status(200).json(response);
       }
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: "Internal Server Error" });
+      console.error(`❌ ERROR in getLivestatByIdandDate:`, error);
+      console.error(`   Error message: ${error.message}`);
+      console.error(`   Stack trace:`, error.stack);
+      res.status(500).json({ error: "Internal Server Error", details: error.message });
     }
   };
 
   const getLivestatByIdandDate2 = async (req, res) => {
+    const timestamp = new Date().toISOString();
+    console.log(`\n[${timestamp}] 🟣 getLivestatByIdandDate2 ENDPOINT HIT (Detailed Sales)`);
+    console.log(`📦 Query params:`, req.query);
+    
     try {
       const idCRM = req.query.idCRM; 
       const startDateString = req.query.date1;
       const endDateString = req.query.date2;
 
+      console.log(`🔍 Parsed values:`);
+      console.log(`   - idCRM: "${idCRM}"`);
+      console.log(`   - date1: "${startDateString}"`);
+      console.log(`   - date2: "${endDateString}"`);
+
       const db = await connectToDatabase();
       const collection = db.collection('TempsReels');
+
+      console.log(`📊 Executing MongoDB aggregation query on TempsReels collection...`);
 
       const livestats = await collection.aggregate([
         {
@@ -387,15 +494,25 @@ const UpdateTiquer = async (req, res) => {
           }
         },
       ]).toArray();
+      
+      console.log(`✅ Query returned ${livestats.length} detailed records`);
+      
       if (livestats.length === 0) {
-        return res.status(200).json({ msg: "Rien de statistique trouvé pour ces dates spécifiées", success: true ,data:livestats});
+        console.log(`⚠️  No detailed data found for idCRM="${idCRM}" in date range`);
+        const response = { msg: "Rien de statistique trouvé pour ces dates spécifiées", success: true ,data:livestats};
+        console.log(`📤 Sending response with ${livestats.length} records`);
+        return res.status(200).json(response);
       } else {
-        const sumsForEachLine = calculateSumsForEachLine(livestats);
-        res.status(200).json({ msg:"Des statistiques existent pour ces dates spécifiées", success: true ,data:sumsForEachLine});
+        console.log(`📈 Sample record:`, livestats[0]);
+        const response = { msg:"Des statistiques existent pour ces dates spécifiées", success: true ,data:livestats};
+        console.log(`📤 Sending response with ${livestats.length} records`);
+        res.status(200).json(response);
       }
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: "Internal Server Error" });
+      console.error(`❌ ERROR in getLivestatByIdandDate2:`, error);
+      console.error(`   Error message: ${error.message}`);
+      console.error(`   Stack trace:`, error.stack);
+      res.status(500).json({ error: "Internal Server Error", details: error.message });
     }
   };
 
@@ -872,7 +989,6 @@ htmlContent += `
   
     <h5 class="TicketID"><b>TICKET  : ${data.idTiquer}</b></h5><br>
     <div class="Ligne1"></div>
-    <div style="page-break-before: always;"></div>
 
     <table class="StyledTable">
     <thead>
@@ -1143,6 +1259,9 @@ res.send(htmlContent.replace(/undefined/g, ''));
       const idCRM = String(req.params.idCRM);
       const date = req.params.date;
       const idTiquer = parseInt(req.params.idTiquer);
+      const lang = (req.query.lang || 'en').toLowerCase(); // Get language from query param
+      const t = (key) => getTranslation(lang, key); // Translation function
+      
       const db = await connectToDatabase();
       const collection = db.collection('Tiquer');
       const ticket = await collection.findOne({ IdCRM: idCRM, Date: date, idTiquer: idTiquer });
@@ -1150,11 +1269,11 @@ res.send(htmlContent.replace(/undefined/g, ''));
       if (!ticket) {
         return res.status(404).send('<html><body>Ticket not found</body></html>');
       }
-      
+
       tickets = [ticket];
       let htmlContent = `
       <!DOCTYPE html>
-      <html lang="en">
+      <html lang="${lang === 'ar' ? 'ar' : lang}${lang === 'ar' ? ' dir="rtl"' : ''}">
       <head>
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1165,26 +1284,33 @@ res.send(htmlContent.replace(/undefined/g, ''));
                   font-family: 'Dina';
                   src: url('/Dina.fon');
               }
+              @font-face {
+                  font-family: 'Amiri';
+                  src: url('/Amiri-Regular.ttf');
+              }
               * {
                   margin: 0;
                   padding: 0;
                   box-sizing: border-box;
               }
               body {
-                  font-family: 'Dina', monospace;
+                  font-family: ${lang === 'ar' ? "'Amiri', " : ""}  'Dina', monospace;
                   background: #f5f5f5;
                   padding: 8px;
+                  ${lang === 'ar' ? "direction: rtl; text-align: right;" : ""}
               }
               .button-container {
                   display: flex;
-                  justify-content: flex-end;
+                  justify-content: ${lang === 'ar' ? 'flex-start' : 'flex-end'};
+                  gap: 8px;
                   margin-bottom: 0;
                   position: sticky;
                   top: 8px;
                   z-index: 100;
-                  padding-right: 8px;
+                  padding-${lang === 'ar' ? 'left' : 'right'}: 8px;
+                  flex-wrap: wrap;
               }
-              .download-btn {
+              .action-btn {
                   background: transparent;
                   border: none;
                   border-radius: 0;
@@ -1197,16 +1323,34 @@ res.send(htmlContent.replace(/undefined/g, ''));
                   width: 40px;
                   height: 40px;
               }
-              .download-btn img {
+              .action-btn img {
                   width: 32px;
                   height: 32px;
                   display: block;
               }
-              .download-btn:hover {
+              .action-btn:hover {
                   opacity: 0.7;
               }
-              .download-btn:active {
+              .action-btn:active {
                   transform: scale(0.98);
+              }
+              .lang-btn {
+                  background: white;
+                  border: 1px solid #ddd;
+                  padding: 6px 10px;
+                  font-size: 12px;
+                  font-weight: bold;
+                  border-radius: 3px;
+                  cursor: pointer;
+                  transition: all 0.2s ease;
+              }
+              .lang-btn.active {
+                  background: #333;
+                  color: white;
+                  border-color: #333;
+              }
+              .lang-btn:hover {
+                  opacity: 0.8;
               }
               .ticket {
                   background: white;
@@ -1216,9 +1360,10 @@ res.send(htmlContent.replace(/undefined/g, ''));
                   border-radius: 1px;
                   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
                   max-width: 350px;
-                  font-family: 'Dina', monospace;
+                  font-family: ${lang === 'ar' ? "'Amiri', " : ""}'Dina', monospace;
                   font-size: 12px;
                   line-height: 1.4;
+                  ${lang === 'ar' ? "direction: rtl; text-align: right;" : ""}
               }
               .ticket-details {
                   margin-bottom: 12px;
@@ -1282,6 +1427,7 @@ res.send(htmlContent.replace(/undefined/g, ''));
               }
               .header-info p {
                   margin: 1px 0;
+                  ${lang === 'ar' ? "text-align: right;" : ""}
               }
               .footer-info {
                   text-align: center;
@@ -1319,7 +1465,7 @@ res.send(htmlContent.replace(/undefined/g, ''));
                       padding: 8px;
                       font-size: 11px;
                   }
-                  .download-btn {
+                  .action-btn {
                       padding: 8px 12px;
                       font-size: 12px;
                   }
@@ -1328,7 +1474,13 @@ res.send(htmlContent.replace(/undefined/g, ''));
       </head>
       <body>
       <div class="button-container">
-        <button class="download-btn" onclick="downloadPDF()"><img src="/pdf.png" alt="Download PDF" title="Download PDF"></button>
+        <button class="action-btn" id="download-pdf" onclick="downloadPDF()" title="Download PDF"><img src="/pdf.png" alt="PDF"></button>
+        <div style="display: flex; gap: 4px;">
+          <button class="lang-btn ${lang === 'en' ? 'active' : ''}" onclick="changeLanguage('en')">EN</button>
+          <button class="lang-btn ${lang === 'es' ? 'active' : ''}" onclick="changeLanguage('es')">ES</button>
+          <button class="lang-btn ${lang === 'ar' ? 'active' : ''}" onclick="changeLanguage('ar')">AR</button>
+          <button class="lang-btn ${lang === 'fr' ? 'active' : ''}" onclick="changeLanguage('fr')">FR</button>
+        </div>
       </div>
       <div id="ticket-content">
       `;
@@ -1356,16 +1508,16 @@ res.send(htmlContent.replace(/undefined/g, ''));
               </div>
               <div class="ticket-details">
                   <p style='margin-top: 4px;'>${formattedDate || ''} ${ticket.HeureTicket || ''}</p>
-                  <p>Servi par: ADMIN</p>
-                  ${ticket.Order_number ? `<p style="margin-top: 4px;">Order N°: ${ticket.Order_number}</p>` : ''}
+                  <p>${t('servedBy')}: ADMIN</p>
+                  ${ticket.Order_number ? `<p style="margin-top: 4px;">${t('orderNo')}: ${ticket.Order_number}</p>` : ''}
               </div>
               <div class="items-list">
                   <table>
                       <thead>
                           <tr>
-                              <td style="text-align: left;">ARTICLE</td>
-                              <td style="text-align: right;">PU</td>
-                              <td style="text-align: right;">TOTAL</td>
+                              <td style="text-align: left;">${t('article')}</td>
+                              <td style="text-align: right;">${t('pu')}</td>
+                              <td style="text-align: right;">${t('total')}</td>
                           </tr>
                       </thead>
                   </table>
@@ -1442,15 +1594,15 @@ res.send(htmlContent.replace(/undefined/g, ''));
                   <table>
                       <tbody>
                           <tr>
-                              <td>Subtotal (HT)</td>
+                              <td>${t('subtotalHT')}</td>
                               <td style="text-align: right;">${totalHT.toFixed(2)} ${ticket.currency || ticket.devise || ''}</td>
                           </tr>
                           <tr>
-                              <td>Tax</td>
+                              <td>${t('tax')}</td>
                               <td style="text-align: right;">${totalTVA.toFixed(2)} ${ticket.currency || ticket.devise || ''}</td>
                           </tr>
                           <tr style="font-weight: bold; border-top: 1px solid #333;">
-                              <td>TOTAL</td>
+                              <td>${t('totalLabel')}</td>
                               <td style="text-align: right;">${(ticket.Totals?.Total_TTC || 0).toFixed(2)} ${ticket.currency || ticket.devise || ''}</td>
                           </tr>
                       </tbody>
@@ -1462,8 +1614,8 @@ res.send(htmlContent.replace(/undefined/g, ''));
                   <table style="margin-top: 12px; border-top: 2px solid #333; padding-top: 8px;">
                       <tbody>
                           <tr style="font-weight: bold;">
-                              <td>PAYMENT METHOD</td>
-                              <td style="text-align: right;">AMOUNT</td>
+                              <td>${t('paymentMethod')}</td>
+                              <td style="text-align: right;">${t('amount')}</td>
                           </tr>
             `;
             paymentMethods.forEach(payment => {
@@ -1494,20 +1646,24 @@ res.send(htmlContent.replace(/undefined/g, ''));
           
           htmlContent += `
               </div>
-              <div class="closing-note">
-                  <p>${ticket.ConsumptionMode ? ticket.ConsumptionMode.toUpperCase() : 'SUR PLACE'}</p>
-              </div>
+                <div class="closing-note">
+                    <p>${ticket.ConsumptionMode ? getTranslatedMode(ticket.ConsumptionMode, lang) : t('dineIn')}</p>
+                  </div>
           `;
           
           // Add footer info
           if (lineCount > 0 || itemCount > 0) {
             htmlContent += `
               <div class="footer-info">
-                  <p>Lines: ${lineCount} | Items: ${itemCount}</p>
             `;
+            if (lineCount > 0 || itemCount > 0) {
+              htmlContent += `
+                  <p>${t('lines')}: ${lineCount} | ${t('items')}: ${itemCount}</p>
+              `;
+            }
             if (ticket.Signature) {
               htmlContent += `
-                  <p style="margin-top: 8px; border-top: 1px solid #ddd; padding-top: 4px;">Signature: ${ticket.Signature}</p>
+                  <p style="margin-top: 8px; border-top: 1px solid #ddd; padding-top: 4px;">${t('signature')}: ${ticket.Signature}</p>
             `;
             }
             htmlContent += `
@@ -1542,7 +1698,7 @@ res.send(htmlContent.replace(/undefined/g, ''));
           
           htmlContent += `
               <div style="text-align: center; margin-top: 12px; padding-top: 8px; border-top: 1px solid #ddd; font-size: 10px;">
-                  <p>MERCI DE VOTRE VISITE</p>
+                  <p>${t('thankYou')}</p>
               </div>
               ${ticket.NF525 ? `<div style="text-align: center; margin-top: 12px; padding-top: 8px; font-size: 9px; color: #333;">
                   <p>NF525: ${ticket.NF525}</p>
@@ -1570,6 +1726,11 @@ res.send(htmlContent.replace(/undefined/g, ''));
           jsPDF: { orientation: 'portrait', unit: 'mm', format: [80, 200] }
         };
         html2pdf().set(opt).from(element).save();
+      }
+      function changeLanguage(lang) {
+        const urlParams = new URLSearchParams(window.location.search);
+        urlParams.set('lang', lang);
+        window.location.search = urlParams.toString();
       }
       </script>
       </html>
