@@ -22,6 +22,8 @@ livestatsRoutes.post("/send-pdf-email", sendPdfInEmail);
 livestatsRoutes.get("/get-sales-summary", getLivestatByIdandDate);
 livestatsRoutes.get("/get-detailed-sales-summary", getLivestatByIdandDate2);
 livestatsRoutes.get("/get-tickets", getTiquerId);
+// alias for orders listing - same implementation as tickets
+livestatsRoutes.get("/get-orders", getTiquerId);
 livestatsRoutes.get("/get-payment-statistics", getPaymentStatistics);
 
 // Store management endpoints

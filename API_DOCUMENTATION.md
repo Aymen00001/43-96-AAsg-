@@ -630,9 +630,9 @@ GET /get-payment-statistics?idCRM=2435&date1=20260101&date2=20260228
 
 ---
 
-**Endpoint:** `GET /get-tickets`
+**Endpoint:** `GET /get-tickets` (alias `/get-orders` for clarity)
 
-**Description:** Retrieves all tickets for a store within a date range
+**Description:** Retrieves tickets (orders) for a store within a date range. Supports search, filtering and paging to power the dashboard orders table.
 
 **Query Parameters:**
 | Parameter | Type | Required | Description |
@@ -640,32 +640,34 @@ GET /get-payment-statistics?idCRM=2435&date1=20260101&date2=20260228
 | idCRM | string | Yes | Store identifier |
 | date1 | string | Yes | Start date (YYYYMMDD) |
 | date2 | string | Yes | End date (YYYYMMDD) |
+| search | string | No | Keyword search on ticket number, order number, customer name, etc. case‑insensitive |
+| paymentMethod | string | No | Filter by payment method name ("CARD", "CASH", etc.) |
+| fulfillmentMode | string | No | Filter by consumption/fulfillment mode ("SurPlace", "Livraison", etc.) |
+| page | number | No | Page number for pagination (default 1) |
+| limit | number | No | Items per page (default 50) |
 
 **Example Request:**
 ```
-GET /get-tickets?idCRM=2435&date1=20260101&date2=20260131
+GET /get-tickets?idCRM=2435&date1=20260101&date2=20260131&search=123&paymentMethod=CARD&page=2&limit=25
 ```
 
-**Response:**
+**Response format:**
 ```json
-[
-  {
-    "_id": "693d765ffba51e4799b4db3e",
-    "idTiquer": "30",
-    "Date": "20251213",
-    "HeureTicket": "15:21",
-    "TTC": 51.49,
-    "Menu": [...],
-    ...
-  }
-]
+{
+  "data": [ /* array of ticket objects */ ],
+  "totalCount": 1234,
+  "page": 2,
+  "limit": 25
+}
 ```
+
+Each ticket object contains the same properties as before (`idTiquer`, `Date`, `HeureTicket`, `TTC`, `Menu`, etc.).
 
 **Database Collection:** `Tiquer`
 
 **Status Codes:**
-- `200` - Success
-- `404` - No tickets found
+- `200` - Success (returns empty array if no results)
+- `400` - Missing required parameters
 - `500` - Server error
 
 ---

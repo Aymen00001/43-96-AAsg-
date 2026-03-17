@@ -800,30 +800,94 @@ const updateStatus = async () => {
     }
   };
 
+  /**
+   * GET /get-tickets (renamed to /get-orders on frontend)
+   * Supports optional search, filtering and pagination for better UX
+   *
+   * Query parameters:
+   *   idCRM (string)           REQUIRED
+   *   date1 (YYYYMMDD)         REQUIRED
+   *   date2 (YYYYMMDD)         REQUIRED
+   *   search (string)          optional keyword matching idTiquer, Signature, customerName etc.
+   *   paymentMethod (string)   optional filter against PaymentMethods/ModePaiement
+   *   fulfillmentMode (string) optional filter against ConsumptionMode
+   *   page (number)            optional, default 1
+   *   limit (number)           optional, default 50
+   *
+   * Response JSON:
+   * {
+   *   data: [<ticket>, ...],
+   *   totalCount: <number>,
+   *   page: <number>,
+   *   limit: <number>
+   * }
+   */
   const getTiquerId = async (req, res) => {
     try {
-      const idCRM = req.query.idCRM; 
+      const idCRMParam = req.query.idCRM || '';
       const startDateString = req.query.date1;
       const endDateString = req.query.date2;
-
-      const db = await connectToDatabase();
-      const collection = db.collection('Tiquer');
-
-      const livestats = await collection.aggregate([
-        {
-          $match: {
-            idCRM: idCRM,
-            Date: { $gte:  startDateString, $lte: endDateString }
-          }
-        },
-      ]).toArray();
-   
-      if (livestats.length === 0) {
-        return res.status(404).json({ error: "Livestats not found within the specified date range" });
-      } else {
-      
-        res.json(livestats);
+      if (!idCRMParam || !startDateString || !endDateString) {
+        return res.status(400).json({ error: 'idCRM, date1 and date2 are required' });
       }
+
+      const idCRM = String(idCRMParam); // Keep as string to match database storage
+      const db = await connectToDatabase();
+      
+      // pagination parameters
+      const page = Math.max(parseInt(req.query.page) || 1, 1);
+      const limit = Math.max(parseInt(req.query.limit) || 50, 1);
+      const skip = (page - 1) * limit;
+
+      // Try Tiquer collection first
+      const tiquerCollection = db.collection('Tiquer');
+      const pipeline = [];
+      const match = {
+        idCRM: idCRM,
+        Date: { $gte: startDateString, $lte: endDateString }
+      };
+
+      // apply text search
+      const search = req.query.search;
+      if (search && typeof search === 'string' && search.trim() !== '') {
+        const regex = new RegExp(search.trim(), 'i');
+        match.$or = [
+          { idTiquer: regex },
+          { idCommande: regex },
+          { Signature: regex },
+          { customerName: regex }
+        ];
+      }
+
+      // filter by payment method
+      const paymentMethod = req.query.paymentMethod;
+      if (paymentMethod && typeof paymentMethod === 'string') {
+        const pmRegex = new RegExp(paymentMethod, 'i');
+        match.$or = match.$or || [];
+        match.$or.push({ 'PaymentMethods.payment_method': pmRegex });
+        match.$or.push({ ModePaiement: pmRegex });
+      }
+
+      // filter by fulfillment mode
+      const fulfillmentMode = req.query.fulfillmentMode;
+      if (fulfillmentMode && typeof fulfillmentMode === 'string') {
+        match.ConsumptionMode = new RegExp(fulfillmentMode, 'i');
+      }
+
+      pipeline.push({ $match: match });
+      pipeline.push({
+        $facet: {
+          results: [{ $skip: skip }, { $limit: limit }],
+          totalCount: [{ $count: 'count' }]
+        }
+      });
+
+      let aggResult = await tiquerCollection.aggregate(pipeline).toArray();
+      let results = (aggResult[0] && aggResult[0].results) || [];
+      let totalCount = (aggResult[0] && aggResult[0].totalCount[0] && aggResult[0].totalCount[0].count) || 0;
+
+      // Return only individual tickets - no fallback to aggregated data
+      res.json({ data: results, totalCount, page, limit });
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: "Internal Server Error" });
@@ -1258,13 +1322,13 @@ res.send(htmlContent.replace(/undefined/g, ''));
     try {
       const idCRM = String(req.params.idCRM);
       const date = req.params.date;
-      const idTiquer = parseInt(req.params.idTiquer);
+      const idTiquer = String(req.params.idTiquer); // Keep as string to match database storage
       const lang = (req.query.lang || 'en').toLowerCase(); // Get language from query param
       const t = (key) => getTranslation(lang, key); // Translation function
       
       const db = await connectToDatabase();
       const collection = db.collection('Tiquer');
-      const ticket = await collection.findOne({ IdCRM: idCRM, Date: date, idTiquer: idTiquer });
+      const ticket = await collection.findOne({ idCRM: idCRM, Date: date, idTiquer: idTiquer });
       
       if (!ticket) {
         return res.status(404).send('<html><body>Ticket not found</body></html>');
