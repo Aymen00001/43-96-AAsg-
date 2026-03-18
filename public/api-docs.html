@@ -837,7 +837,7 @@
   "merchant_name": "RESTAURANT PREMIUM",
   "merchant_address": "123 CULINARY STREET, PARIS",
   "SIRET": "12345678901234",
-  "ConsumptionMode": "SUR PLACE",
+  "ConsumptionMode": "Dine-in",
   "Menu": [
     {
       "NameProduct": "MENU SANDWICH DELUXE",
@@ -1086,6 +1086,45 @@
                         <li>Returns 400 error if payment method is invalid or amounts don't match</li>
                         <li>Supports multiple payment methods in single transaction</li>
                     </ul>
+
+                    <h3 style="margin-bottom: 12px; font-size: 13px; color: var(--text); font-weight: 600;">ConsumptionMode - ENGLISH ONLY - Allowed Values</h3>
+                    <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 12px;"><strong style="color: #ef4444;">STRICT VALIDATION:</strong> ConsumptionMode must be in ENGLISH and case-sensitive. French or mixed-language values will return 400 error.</p>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin-bottom: 16px;">
+                        <div style="background: rgba(16, 185, 129, 0.1); border-left: 3px solid #10b981; padding: 12px; border-radius: 4px;">
+                            <div style="font-weight: 600; color: var(--text); margin-bottom: 4px;">Takeaway</div>
+                            <div style="font-size: 12px; color: var(--text-muted);">Customer takes order away</div>
+                        </div>
+                        <div style="background: rgba(59, 130, 246, 0.1); border-left: 3px solid #3b82f6; padding: 12px; border-radius: 4px;">
+                            <div style="font-weight: 600; color: var(--text); margin-bottom: 4px;">Dine-in</div>
+                            <div style="font-size: 12px; color: var(--text-muted);">Customer dining at location</div>
+                        </div>
+                        <div style="background: rgba(249, 115, 22, 0.1); border-left: 3px solid var(--accent); padding: 12px; border-radius: 4px;">
+                            <div style="font-weight: 600; color: var(--text); margin-bottom: 4px;">Delivery</div>
+                            <div style="font-size: 12px; color: var(--text-muted);">Order is delivered</div>
+                        </div>
+                    </div>
+
+                    <h3 style="margin-bottom: 12px; font-size: 13px; color: var(--text); font-weight: 600;">ConsumptionMode - INVALID Values (Returns 400)</h3>
+                    <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 12px;">The following values will be rejected:</p>
+                    <ul class="feature-list" style="margin-bottom: 12px;">
+                        <li><code style="color: #ef4444;">"À Emporter"</code> → Use <code style="color: #10b981;">"Takeaway"</code></li>
+                        <li><code style="color: #ef4444;">"A Emporter"</code> → Use <code style="color: #10b981;">"Takeaway"</code></li>
+                        <li><code style="color: #ef4444;">"SUR PLACE"</code> → Use <code style="color: #10b981;">"Dine-in"</code></li>
+                        <li><code style="color: #ef4444;">"Sur Place"</code> → Use <code style="color: #10b981;">"Dine-in"</code></li>
+                        <li><code style="color: #ef4444;">"Livraison"</code> → Use <code style="color: #10b981;">"Delivery"</code></li>
+                    </ul>
+
+                    <div class="code-label">Error Response Example - Invalid ConsumptionMode</div>
+                    <div class="code-block">
+                        <pre><code class="language-json">HTTP 400 Bad Request
+{
+  "status": "error",
+  "code": 400,
+  "message": "Invalid ConsumptionMode",
+  "error": "Invalid ConsumptionMode: 'À Emporter'. Must be one of: Takeaway, Dine-in, Delivery",
+  "allowed_values": ["Takeaway", "Dine-in", "Delivery"]
+}</code></pre>
+                    </div>
 
                     <div class="code-label" style="margin-top: 16px;">Payment Methods Example</div>
                     <div class="code-block">

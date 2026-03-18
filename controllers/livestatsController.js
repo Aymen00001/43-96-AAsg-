@@ -305,6 +305,9 @@ const UpdateTiquer = async (req, res) => {
     
     // Allowed payment methods
     const ALLOWED_PAYMENT_METHODS = ['CASH', 'CARD', 'CHECK'];
+    
+    // Allowed consumption modes (ENGLISH ONLY)
+    const ALLOWED_CONSUMPTION_MODES = ['Takeaway', 'Dine-in', 'Delivery'];
 
     try {
       // Validate required fields
@@ -318,6 +321,18 @@ const UpdateTiquer = async (req, res) => {
         return res.status(400).json({ 
           error: "Invalid Totals object. Must include Total_Ht, Total_TVA, and Total_TTC"
         });
+      }
+
+      // Validate ConsumptionMode (ENGLISH ONLY - STRICT)
+      if (data.ConsumptionMode) {
+        if (!ALLOWED_CONSUMPTION_MODES.includes(data.ConsumptionMode)) {
+          console.error(`Invalid ConsumptionMode: '${data.ConsumptionMode}'. Received value must be in English.`);
+          return res.status(400).json({ 
+            error: `Invalid ConsumptionMode: '${data.ConsumptionMode}'. Must be one of: ${ALLOWED_CONSUMPTION_MODES.join(', ')}`,
+            allowed_values: ALLOWED_CONSUMPTION_MODES,
+            note: "ConsumptionMode must be in English"
+          });
+        }
       }
 
       // Validate and normalize payment methods
@@ -396,6 +411,11 @@ const UpdateTiquer = async (req, res) => {
   const calculateSumsForEachLine = (objects, sumsForEachLine = {}) => {
     objects.forEach(obj => {
       for (const key in obj) {
+        // Skip MongoDB _id field and buffer objects
+        if (key === '_id' || obj[key]?.buffer) {
+          continue;
+        }
+        
         if (typeof obj[key] === 'object' && obj[key] !== null) {
           sumsForEachLine[key] = calculateSumsForEachLine([obj[key]], sumsForEachLine[key] || {});
         }
@@ -405,7 +425,9 @@ const UpdateTiquer = async (req, res) => {
           sumsForEachLine[key] = Math.round(result * 100) / 100;
         }
         if (typeof obj[key] === 'string') {
-          if (key != 'date') { sumsForEachLine[key] = obj[key]; }
+          if (key !== 'date' && key !== '_id') { 
+            sumsForEachLine[key] = obj[key]; 
+          }
         }
       }
     });
@@ -414,25 +436,40 @@ const UpdateTiquer = async (req, res) => {
   };
 
   const getLivestatByIdandDate = async (req, res) => {
+    const callId = Math.random().toString(36).substr(2, 9);
     const timestamp = new Date().toISOString();
-    console.log(`\n[${timestamp}] 🔵 getLivestatByIdandDate ENDPOINT HIT`);
-    console.log(`📦 Query params:`, req.query);
+    console.log(`\n\n${'='.repeat(80)}`);
+    console.log(`📍 [${callId}] 🔵 getLivestatByIdandDate ENDPOINT HIT`);
+    console.log(`📅 Timestamp: ${timestamp}`);
+    console.log(`📦 Full Query: ${JSON.stringify(req.query)}`);
     
     try {
       const idCRM = req.query.idCRM; 
       const startDateString = req.query.date1;
       const endDateString = req.query.date2;
 
-      console.log(`🔍 Parsed values:`);
-      console.log(`   - idCRM: "${idCRM}" (type: ${typeof idCRM})`);
-      console.log(`   - date1: "${startDateString}"`);
-      console.log(`   - date2: "${endDateString}"`);
+      console.log(`\n✓ [${callId}] Parameters extracted:`);
+      console.log(`  ├─ idCRM: "${idCRM}" (type: ${typeof idCRM}, length: ${idCRM?.length})`);
+      console.log(`  ├─ date1: "${startDateString}" (type: ${typeof startDateString})`);
+      console.log(`  └─ date2: "${endDateString}" (type: ${typeof endDateString})`);
 
+      // Validation
+      if (!idCRM || !startDateString || !endDateString) {
+        console.log(`\n❌ [${callId}] VALIDATION FAILED`);
+        console.log(`  ├─ idCRM present? ${!!idCRM}`);
+        console.log(`  ├─ date1 present? ${!!startDateString}`);
+        console.log(`  └─ date2 present? ${!!endDateString}`);
+        return res.status(400).json({ error: 'Missing required parameters' });
+      }
+
+      console.log(`\n⏳ [${callId}] Connecting to database...`);
       const db = await connectToDatabase();
+      console.log(`✅ [${callId}] Database connected`);
       
       // First try to get data from livestats collection (closure/aggregated data)
       const livestatsCollection = db.collection('livestats');
-      console.log(`📊 Querying livestats collection...`);
+      console.log(`\n🔍 [${callId}] Step 1: Querying livestats collection...`);
+      console.log(`  Query: { IdCRM: "${idCRM}", date: { $gte: "${startDateString}", $lte: "${endDateString}" } }`);
       
       let livestats = await livestatsCollection.aggregate([
         {
@@ -443,25 +480,71 @@ const UpdateTiquer = async (req, res) => {
         },
       ]).toArray();
 
-      console.log(`✅ livestats collection returned ${livestats.length} records`);
+      console.log(`✅ [${callId}] livestats query completed - found ${livestats.length} records`);
+      if (livestats.length > 0) {
+        console.log(`  First record keys: ${Object.keys(livestats[0]).join(', ')}`);
+      }
 
       // If livestats is empty, aggregate from Tiquer collection (live transactions)
       if (livestats.length === 0) {
-        console.log(`⚠️  No closure data found, falling back to live Tiquer data...`);
+        console.log(`\n⚠️  [${callId}] No closure data found, falling back to Tiquer...`);
         const tiquerCollection = db.collection('Tiquer');
+        
+        console.log(`\n🔍 [${callId}] Step 2: Querying Tiquer collection...`);
+        console.log(`  Query: { IdCRM: "${idCRM}", Date: { $gte: "${startDateString}", $lte: "${endDateString}" } }`);
         
         const tiquerData = await tiquerCollection.find({
           IdCRM: idCRM,
           Date: { $gte: startDateString, $lte: endDateString }
         }).toArray();
 
-        console.log(`📊 Retrieved ${tiquerData.length} tickets from Tiquer collection`);
+        console.log(`✅ [${callId}] Tiquer query completed - retrieved ${tiquerData.length} tickets`);
+        if (tiquerData.length > 0) {
+          console.log(`  First ticket - idTiquer: ${tiquerData[0].idTiquer}, TTC: ${tiquerData[0].TTC}, Date: ${tiquerData[0].Date}`);
+        }
 
         if (tiquerData.length === 0) {
+          console.log(`\n❌ [${callId}] NO DATA FOUND - returning empty response`);
           const response = { msg: "Rien de statistique trouvé pour ces dates spécifiées", success: true, data: [] };
-          console.log(`📤 Sending response:`, JSON.stringify(response, null, 2));
+          console.log(`📤 [${callId}] Sending response:`, JSON.stringify(response, null, 2));
+          console.log(`${'='.repeat(80)}\n`);
           return res.status(200).json(response);
         }
+
+        console.log(`\n⚙️  [${callId}] Step 3: Building aggregated structure...`);
+        
+        // Normalization functions
+        const normalizeConsumptionMode = (mode) => {
+          if (!mode) return 'UNKNOWN';
+          const normalized = mode.toUpperCase().trim();
+          // Normalize variations of takeaway
+          if (normalized.includes('EMPORTER') || normalized.includes('TAKEAWAY') || normalized.includes('TO-GO')) {
+            return 'À Emporter';
+          }
+          // Normalize dine-in
+          if (normalized.includes('SUR PLACE') || normalized.includes('ON-SITE') || normalized.includes('ON SITE') || normalized.includes('DINE-IN')) {
+            return 'Sur Place';
+          }
+          // Normalize delivery
+          if (normalized.includes('LIVRAISON') || normalized.includes('DELIVERY')) {
+            return 'Livraison';
+          }
+          return mode; // Return original if no match
+        };
+
+        const normalizePaymentMethod = (method) => {
+          if (!method) return 'UNKNOWN';
+          const normalized = method.toUpperCase().trim();
+          // Normalize cash variations
+          if (normalized === 'CASH' || normalized === 'ESPECES' || normalized === 'ESPÈCES') {
+            return 'CASH';
+          }
+          // Normalize card
+          if (normalized === 'CARD' || normalized === 'CARTE' || normalized === 'CARTE_BANCAIRE') {
+            return 'CARD';
+          }
+          return method; // Return original if no match
+        };
 
         // Build aggregated structure matching frontend expectations
         const aggregated = {
@@ -479,65 +562,163 @@ const UpdateTiquer = async (req, res) => {
           devise: '€'
         };
 
+        let ticketIdx = 0;
         // Process each ticket
-        tiquerData.forEach(ticket => {
+        tiquerData.forEach((ticket, idx) => {
+          ticketIdx++;
+          console.log(`\n  Ticket ${idx + 1}/${tiquerData.length}:`);
+          console.log(`    ├─ idTiquer: ${ticket.idTiquer}, Date: ${ticket.Date}, Time: ${ticket.HeureTicket}`);
+          console.log(`    ├─ TTC: ${ticket.TTC}, HT: ${ticket.Totals?.Total_Ht}, TVA: ${ticket.Totals?.Total_TVA}`);
+          
           // Sum revenue
           aggregated.ChiffreAffaire.Total_TTC += parseFloat(ticket.TTC || 0);
           aggregated.ChiffreAffaire.Total_HT += parseFloat(ticket.Totals?.Total_Ht || 0);
           aggregated.ChiffreAffaire.Total_TVA += parseFloat(ticket.Totals?.Total_TVA || 0);
+          console.log(`    └─ Running totals - TTC: ${aggregated.ChiffreAffaire.Total_TTC}, HT: ${aggregated.ChiffreAffaire.Total_HT}, TVA: ${aggregated.ChiffreAffaire.Total_TVA}`);
 
           // Process payment methods
           if (ticket.PaymentMethods && Array.isArray(ticket.PaymentMethods)) {
-            ticket.PaymentMethods.forEach(pm => {
-              const method = pm.payment_method || 'UNKNOWN';
-              aggregated.modePaiement[method] = (aggregated.modePaiement[method] || 0) + (pm.amount || 0);
+            console.log(`    Payment methods: ${ticket.PaymentMethods.length} found`);
+            ticket.PaymentMethods.forEach((pm, pmIdx) => {
+              const method = normalizePaymentMethod(pm.payment_method);
+              const amount = pm.amount || 0;
+              aggregated.modePaiement[method] = (aggregated.modePaiement[method] || 0) + amount;
+              console.log(`      [${pmIdx}] ${pm.payment_method} → ${method}: ${amount} (total for method: ${aggregated.modePaiement[method]})`);
             });
           }
 
           // Process consumption mode (fulfillment)
-          const consumptionMode = ticket.ConsumptionMode || 'UNKNOWN';
+          const rawConsumptionMode = ticket.ConsumptionMode || 'UNKNOWN';
+          const consumptionMode = normalizeConsumptionMode(rawConsumptionMode);
           aggregated.modeConsommation[consumptionMode] = (aggregated.modeConsommation[consumptionMode] || 0) + (ticket.TTC || 0);
+          console.log(`    Fulfillment - ${rawConsumptionMode} → ${consumptionMode}: ${ticket.TTC} (total: ${aggregated.modeConsommation[consumptionMode]})`);
 
           // Process products from Menu
           if (ticket.Menu && Array.isArray(ticket.Menu)) {
-            ticket.Menu.forEach(menuItem => {
+            console.log(`    Products: ${ticket.Menu.length} found`);
+            ticket.Menu.forEach((menuItem, mIdx) => {
               const productName = menuItem.NameProduct || 'Unknown Product';
+              const qty = menuItem.QtyProduct || 1;
+              const ttc = parseFloat(menuItem.TTC || 0);
               if (!aggregated.ProduitDetailler[productName]) {
                 aggregated.ProduitDetailler[productName] = {
                   TotalTTC: 0,
                   Quantite: 0
                 };
               }
-              aggregated.ProduitDetailler[productName].TotalTTC += parseFloat(menuItem.TTC || 0);
-              aggregated.ProduitDetailler[productName].Quantite += menuItem.QtyProduct || 1;
+              aggregated.ProduitDetailler[productName].TotalTTC += ttc;
+              aggregated.ProduitDetailler[productName].Quantite += qty;
+              console.log(`      [${mIdx}] ${productName} - Qty: ${qty}, TTC: ${ttc}`);
             });
           }
         });
 
+        console.log(`\n💾 [${callId}] Rounding values...`);
         // Round values
         aggregated.ChiffreAffaire.Total_TTC = Math.round(aggregated.ChiffreAffaire.Total_TTC * 100) / 100;
         aggregated.ChiffreAffaire.Total_HT = Math.round(aggregated.ChiffreAffaire.Total_HT * 100) / 100;
         aggregated.ChiffreAffaire.Total_TVA = Math.round(aggregated.ChiffreAffaire.Total_TVA * 100) / 100;
+        
+        console.log(`  Final aggregated totals:`);
+        console.log(`  ├─ Total_TTC: ${aggregated.ChiffreAffaire.Total_TTC}`);
+        console.log(`  ├─ Total_HT: ${aggregated.ChiffreAffaire.Total_HT}`);
+        console.log(`  ├─ Total_TVA: ${aggregated.ChiffreAffaire.Total_TVA}`);
+        console.log(`  ├─ Payment methods: ${Object.keys(aggregated.modePaiement).length}`);
+        console.log(`  ├─ Fulfillment modes: ${Object.keys(aggregated.modeConsommation).length}`);
+        console.log(`  └─ Products: ${Object.keys(aggregated.ProduitDetailler).length}`);
 
         livestats = [aggregated];
       }
 
       if (livestats.length === 0) {
-        console.log(`⚠️  No data found for idCRM="${idCRM}" in date range`);
+        console.log(`\n❌ [${callId}] NO DATA TO RETURN`);
         const response = { msg: "Rien de statistique trouvé pour ces dates spécifiées", success: true, data: livestats };
-        console.log(`📤 Sending response:`, JSON.stringify(response, null, 2));
+        console.log(`📤 [${callId}] Sending response:`, JSON.stringify(response, null, 2));
+        console.log(`${'='.repeat(80)}\n`);
         return res.status(200).json(response);
       } else {
-        console.log(`📈 Found data! Calculating sums...`);
+        console.log(`\n📊 [${callId}] Step 4: Processing aggregated data...`);
         const sumsForEachLine = calculateSumsForEachLine(livestats);
-        const response = { msg: "Des statistiques existent pour ces dates spécifiées", success: true, data: sumsForEachLine };
-        console.log(`📤 Sending response:`, JSON.stringify(response, null, 2));
+        
+        console.log(`\n📤 [${callId}] Preparing response...`);
+        console.log(`  Data keys: ${Object.keys(sumsForEachLine).join(', ')}`);
+        if (sumsForEachLine.ChiffreAffaire) {
+          console.log(`  ChiffreAffaire: ${JSON.stringify(sumsForEachLine.ChiffreAffaire)}`);
+        }
+        
+        // Normalize response data to consistent structure
+        const normalizeResponseData = (data) => {
+          if (!data || typeof data !== 'object') return data;
+          
+          // Remove MongoDB _id field
+          const { _id, ...normalized } = data;
+          
+          // Normalize ChiffreAffaire (handle both old and new formats)
+          if (normalized.ChiffreAffaire) {
+            const ca = normalized.ChiffreAffaire;
+            // Handle old format with TVA instead of Total_TVA
+            if (ca.TVA !== undefined && ca.Total_TVA === undefined) {
+              normalized.ChiffreAffaire = {
+                Total_TTC: ca.Total_TTC,
+                Total_HT: ca.Total_HT,
+                Total_TVA: ca.TVA
+              };
+            }
+          }
+          
+          // Normalize ProduitDetailler (map Somme to TotalTTC, Qty to Quantite)
+          if (normalized.ProduitDetailler && typeof normalized.ProduitDetailler === 'object') {
+            const normalizedProducts = {};
+            for (const [productName, product] of Object.entries(normalized.ProduitDetailler)) {
+              if (productName === 'SommeTOTAL') continue; // Skip total row
+              normalizedProducts[productName] = {
+                TotalTTC: product.Somme !== undefined ? product.Somme : product.TotalTTC,
+                Quantite: product.Qty !== undefined ? product.Qty : product.Quantite
+              };
+            }
+            normalized.ProduitDetailler = normalizedProducts;
+          }
+          
+          // Normalize modeConsommation keys (SurPlace → Sur Place, A_Emporter → À Emporter)
+          if (normalized.modeConsommation && typeof normalized.modeConsommation === 'object') {
+            const normalizedModes = {};
+            for (const [mode, amount] of Object.entries(normalized.modeConsommation)) {
+              let key = mode;
+              if (mode === 'SurPlace') key = 'Sur Place';
+              else if (mode === 'A_Emporter') key = 'À Emporter';
+              else if (mode === 'Livraison') key = 'Livraison';
+              normalizedModes[key] = amount;
+            }
+            normalized.modeConsommation = normalizedModes;
+          }
+          
+          // Normalize modePaiement keys (CARTE_BANCAIRE → CARD, ESPECES → CASH)
+          if (normalized.modePaiement && typeof normalized.modePaiement === 'object') {
+            const normalizedPayments = {};
+            for (const [method, amount] of Object.entries(normalized.modePaiement)) {
+              let key = method;
+              if (method === 'CARTE_BANCAIRE' || method === 'CARTE') key = 'CARD';
+              else if (method === 'ESPECES' || method === 'ESPÈCES') key = 'CASH';
+              normalizedPayments[key] = amount;
+            }
+            normalized.modePaiement = normalizedPayments;
+          }
+          
+          return normalized;
+        };
+        
+        const normalizedData = normalizeResponseData(sumsForEachLine);
+        const response = { msg: "Des statistiques existent pour ces dates spécifiées", success: true, data: normalizedData };
+        console.log(`\n✅ [${callId}] RESPONSE READY`);
+        console.log(`📄 Response size: ${JSON.stringify(response).length} bytes`);
+        console.log(`${'='.repeat(80)}\n`);
         res.status(200).json(response);
       }
     } catch (error) {
-      console.error(`❌ ERROR in getLivestatByIdandDate:`, error);
-      console.error(`   Error message: ${error.message}`);
-      console.error(`   Stack trace:`, error.stack);
+      console.error(`\n❌ [${callId}] ERROR in getLivestatByIdandDate:`);
+      console.error(`  Message: ${error.message}`);
+      console.error(`  Stack: ${error.stack}`);
+      console.log(`${'='.repeat(80)}\n`);
       res.status(500).json({ error: "Internal Server Error", details: error.message });
     }
   };
@@ -917,29 +1098,60 @@ const updateStatus = async () => {
    * }
    */
   const getTiquerId = async (req, res) => {
+    const callId = Math.random().toString(36).substr(2, 9);
+    console.log(`\n${'='.repeat(80)}`);
+    console.log(`📍 [${callId}] 🟢 getTiquerId (get-tickets) ENDPOINT HIT`);
+    console.log(`📦 Query: ${JSON.stringify(req.query)}`);
+    
     try {
       const idCRMParam = req.query.idCRM || '';
       const startDateString = req.query.date1;
       const endDateString = req.query.date2;
+      const page = Math.max(parseInt(req.query.page) || 1, 1);
+      const limit = Math.max(parseInt(req.query.limit) || 50, 1);
+      
+      console.log(`\n✓ [${callId}] Parameters:`);
+      console.log(`  ├─ idCRM: "${idCRMParam}"`);
+      console.log(`  ├─ date1: "${startDateString}"`);
+      console.log(`  ├─ date2: "${endDateString}"`);
+      console.log(`  ├─ page: ${page}, limit: ${limit}`);
+      
       if (!idCRMParam || !startDateString || !endDateString) {
+        console.log(`❌ [${callId}] Validation failed`);
         return res.status(400).json({ error: 'idCRM, date1 and date2 are required' });
       }
 
-      const idCRM = String(idCRMParam); // Keep as string to match database storage
+      const idCRM = String(idCRMParam);
       const db = await connectToDatabase();
-      
-      // pagination parameters
-      const page = Math.max(parseInt(req.query.page) || 1, 1);
-      const limit = Math.max(parseInt(req.query.limit) || 50, 1);
       const skip = (page - 1) * limit;
+
+      // Normalization function for fulfillment modes
+      const normalizeConsumptionMode = (mode) => {
+        if (!mode) return null;
+        const normalized = mode.toUpperCase().trim();
+        if (normalized.includes('EMPORTER') || normalized.includes('TAKEAWAY') || normalized.includes('TO-GO')) {
+          return 'À Emporter';
+        }
+        if (normalized.includes('SUR PLACE') || normalized.includes('ON-SITE') || normalized.includes('DINE-IN')) {
+          return 'Sur Place';
+        }
+        if (normalized.includes('LIVRAISON') || normalized.includes('DELIVERY')) {
+          return 'Livraison';
+        }
+        return null;
+      };
 
       // Try Tiquer collection first
       const tiquerCollection = db.collection('Tiquer');
+      console.log(`\n🔍 [${callId}] Querying Tiquer collection...`);
+      
       const pipeline = [];
       const match = {
         IdCRM: idCRM,
         Date: { $gte: startDateString, $lte: endDateString }
       };
+      
+      console.log(`  Base match query: ${JSON.stringify(match)}`);
 
       // apply text search
       const search = req.query.search;
@@ -951,6 +1163,7 @@ const updateStatus = async () => {
           { Signature: regex },
           { customerName: regex }
         ];
+        console.log(`  Search filter applied: "${search}"`);
       }
 
       // filter by payment method
@@ -960,14 +1173,39 @@ const updateStatus = async () => {
         match.$or = match.$or || [];
         match.$or.push({ 'PaymentMethods.payment_method': pmRegex });
         match.$or.push({ ModePaiement: pmRegex });
+        console.log(`  Payment method filter: "${paymentMethod}"`);
       }
 
-      // filter by fulfillment mode
+      // filter by fulfillment mode - handle normalized variations
       const fulfillmentMode = req.query.fulfillmentMode;
       if (fulfillmentMode && typeof fulfillmentMode === 'string') {
-        match.ConsumptionMode = new RegExp(fulfillmentMode, 'i');
+        console.log(`  Fulfillment mode filter requested: "${fulfillmentMode}"`);
+        const normalizedTarget = normalizeConsumptionMode(fulfillmentMode);
+        if (normalizedTarget) {
+          // Create pattern to match all variations of this mode
+          if (normalizedTarget === 'À Emporter') {
+            match.$or = match.$or || [];
+            match.$or.push({ ConsumptionMode: /A\s*Emporter/i });
+            match.$or.push({ ConsumptionMode: /À\s*Emporter/i });
+            match.$or.push({ ConsumptionMode: /Takeaway/i });
+            console.log(`    → Normalized to: "À Emporter", added regex filters`);
+          } else if (normalizedTarget === 'Sur Place') {
+            match.$or = match.$or || [];
+            match.$or.push({ ConsumptionMode: /Sur\s*Place/i });
+            match.$or.push({ ConsumptionMode: /On-Site/i });
+            match.$or.push({ ConsumptionMode: /On Site/i });
+            console.log(`    → Normalized to: "Sur Place", added regex filters`);
+          } else if (normalizedTarget === 'Livraison') {
+            match.$or = match.$or || [];
+            match.$or.push({ ConsumptionMode: /Livraison/i });
+            match.$or.push({ ConsumptionMode: /Delivery/i });
+            console.log(`    → Normalized to: "Livraison", added regex filters`);
+          }
+        }
       }
 
+      console.log(`  Final match query: ${JSON.stringify(match)}`);
+      
       pipeline.push({ $match: match });
       pipeline.push({
         $facet: {
@@ -976,15 +1214,30 @@ const updateStatus = async () => {
         }
       });
 
+      console.log(`  Executing aggregation pipeline...`);
       let aggResult = await tiquerCollection.aggregate(pipeline).toArray();
       let results = (aggResult[0] && aggResult[0].results) || [];
       let totalCount = (aggResult[0] && aggResult[0].totalCount[0] && aggResult[0].totalCount[0].count) || 0;
 
-      // Return only individual tickets - no fallback to aggregated data
+      console.log(`✅ [${callId}] Query completed`);
+      console.log(`  Results count: ${results.length}`);
+      console.log(`  Total count: ${totalCount}`);
+      
+      if (totalCount === 0) {
+        console.log(`⚠️  [${callId}] No tickets found in Tiquer collection for this date range`);
+      } else if (results.length > 0) {
+        console.log(`  First ticket: idTiquer=${results[0].idTiquer}, Date=${results[0].Date}, TTC=${results[0].TTC}`);
+      }
+      
+      console.log(`\n📤 [${callId}] Sending response: ${totalCount} total records, ${results.length} on page ${page}`);
+      console.log(`${'='.repeat(80)}\n`);
       res.json({ data: results, totalCount, page, limit });
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: "Internal Server Error" });
+      console.error(`\n❌ [callId] ERROR in getTiquerId:`);
+      console.error(`  Message: ${error.message}`);
+      console.error(`  Stack:`, error.stack);
+      console.log(`${'='.repeat(80)}\n`);
+      res.status(500).json({ error: "Internal Server Error", detail: error.message });
     }
   };
 

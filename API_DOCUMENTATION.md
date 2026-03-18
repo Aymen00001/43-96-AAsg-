@@ -258,7 +258,7 @@ For endpoints that require authentication:
 
 **Optional Fields:**
 - `TTC` - Total with tax
-- `ConsumptionMode` - Consumption mode (e.g., "SUR PLACE", "A EMPORTER")
+- `ConsumptionMode` - **ENGLISH ONLY** - One of: `"Takeaway"`, `"Dine-in"`, `"Delivery"` (case-sensitive). Returns 400 if invalid or in other languages
 - `PaymentMethods` - Payment methods array (new format, recommended)
 - `ModePaiement` - Payment methods array (legacy format, deprecated)
 - `devise` - Currency
@@ -271,6 +271,31 @@ For endpoints that require authentication:
 - `Signature` - Customer or staff signature line (displays in ticket footer)
 - `CardDetails` - Detailed card transaction information (displays when payment method is CARD)
 - `software_version` - Software version number (displays at end of receipt with TVA compliance message)
+
+**ConsumptionMode - Allowed Values (ENGLISH ONLY):**
+```
+"Takeaway"   - Customer takes away the order
+"Dine-in"    - Customer dining at location
+"Delivery"   - Order is delivered
+```
+
+**Invalid ConsumptionMode Values (WILL RETURN 400):**
+```
+"À Emporter"  - Use "Takeaway" instead
+"A Emporter"  - Use "Takeaway" instead
+"SUR PLACE"   - Use "Dine-in" instead
+"Sur Place"   - Use "Dine-in" instead
+"Livraison"   - Use "Delivery" instead
+```
+
+If an invalid ConsumptionMode is provided, the API returns:
+```json
+{
+  "error": "Invalid ConsumptionMode: 'À Emporter'. Must be one of: Takeaway, Dine-in, Delivery",
+  "allowed_values": ["Takeaway", "Dine-in", "Delivery"],
+  "note": "ConsumptionMode must be in English"
+}
+```
 
 **Payment Method Structure (New Format - Recommended):**
 ```json
