@@ -843,7 +843,7 @@ const updateStatus = async () => {
       const tiquerCollection = db.collection('Tiquer');
       const pipeline = [];
       const match = {
-        idCRM: idCRM,
+        IdCRM: idCRM,
         Date: { $gte: startDateString, $lte: endDateString }
       };
 
@@ -1328,7 +1328,7 @@ res.send(htmlContent.replace(/undefined/g, ''));
       
       const db = await connectToDatabase();
       const collection = db.collection('Tiquer');
-      const ticket = await collection.findOne({ idCRM: idCRM, Date: date, idTiquer: idTiquer });
+      const ticket = await collection.findOne({ IdCRM: idCRM, Date: date, idTiquer: idTiquer });
       
       if (!ticket) {
         return res.status(404).send('<html><body>Ticket not found</body></html>');
