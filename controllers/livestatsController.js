@@ -450,29 +450,12 @@ const UpdateTiquer = async (req, res) => {
         console.log(`⚠️  No closure data found, falling back to live Tiquer data...`);
         const tiquerCollection = db.collection('Tiquer');
         
-        const tiquerData = await tiquerCollection.aggregate([
-          {
-            $match: {
-              IdCRM: idCRM,
-              Date: { $gte: startDateString, $lte: endDateString }
-            }
-          },
-          {
-            $group: {
-              _id: '$Date',
-              date: { $first: '$Date' },
-              IdCRM: { $first: '$IdCRM' },
-              Total_TTC: { $sum: '$TTC' },
-              Total_Ht: { $sum: { $ifNull: ['$Totals.Total_Ht', 0] } },
-              Total_TVA: { $sum: { $ifNull: ['$Totals.Total_TVA', 0] } },
-              ticketCount: { $sum: 1 },
-              paymentMethods: { $push: '$PaymentMethods' }
-            }
-          },
-          { $sort: { date: 1 } }
-        ]).toArray();
+        const tiquerData = await tiquerCollection.find({
+          IdCRM: idCRM,
+          Date: { $gte: startDateString, $lte: endDateString }
+        }).toArray();
 
-        console.log(`📊 Aggregated ${tiquerData.length} date(s) from Tiquer collection`);
+        console.log(`📊 Retrieved ${tiquerData.length} tickets from Tiquer collection`);
 
         if (tiquerData.length === 0) {
           const response = { msg: "Rien de statistique trouvé pour ces dates spécifiées", success: true, data: [] };
@@ -480,16 +463,63 @@ const UpdateTiquer = async (req, res) => {
           return res.status(200).json(response);
         }
 
-        // Format aggregated data
-        livestats = tiquerData.map(item => ({
-          IdCRM: item.IdCRM,
-          date: item.date,
-          Total_TTC: parseFloat(item.Total_TTC.toFixed(2)),
-          Total_Ht: parseFloat(item.Total_Ht.toFixed(2)),
-          Total_TVA: parseFloat(item.Total_TVA.toFixed(2)),
-          ticketCount: item.ticketCount,
-          source: 'live'
-        }));
+        // Build aggregated structure matching frontend expectations
+        const aggregated = {
+          ChiffreAffaire: {
+            Total_TTC: 0,
+            Total_HT: 0,
+            Total_TVA: 0
+          },
+          modePaiement: {},
+          modeConsommation: {},
+          ProduitDetailler: {},
+          EtatTiquer: {
+            Encaiser: tiquerData.length
+          },
+          devise: '€'
+        };
+
+        // Process each ticket
+        tiquerData.forEach(ticket => {
+          // Sum revenue
+          aggregated.ChiffreAffaire.Total_TTC += parseFloat(ticket.TTC || 0);
+          aggregated.ChiffreAffaire.Total_HT += parseFloat(ticket.Totals?.Total_Ht || 0);
+          aggregated.ChiffreAffaire.Total_TVA += parseFloat(ticket.Totals?.Total_TVA || 0);
+
+          // Process payment methods
+          if (ticket.PaymentMethods && Array.isArray(ticket.PaymentMethods)) {
+            ticket.PaymentMethods.forEach(pm => {
+              const method = pm.payment_method || 'UNKNOWN';
+              aggregated.modePaiement[method] = (aggregated.modePaiement[method] || 0) + (pm.amount || 0);
+            });
+          }
+
+          // Process consumption mode (fulfillment)
+          const consumptionMode = ticket.ConsumptionMode || 'UNKNOWN';
+          aggregated.modeConsommation[consumptionMode] = (aggregated.modeConsommation[consumptionMode] || 0) + (ticket.TTC || 0);
+
+          // Process products from Menu
+          if (ticket.Menu && Array.isArray(ticket.Menu)) {
+            ticket.Menu.forEach(menuItem => {
+              const productName = menuItem.NameProduct || 'Unknown Product';
+              if (!aggregated.ProduitDetailler[productName]) {
+                aggregated.ProduitDetailler[productName] = {
+                  TotalTTC: 0,
+                  Quantite: 0
+                };
+              }
+              aggregated.ProduitDetailler[productName].TotalTTC += parseFloat(menuItem.TTC || 0);
+              aggregated.ProduitDetailler[productName].Quantite += menuItem.QtyProduct || 1;
+            });
+          }
+        });
+
+        // Round values
+        aggregated.ChiffreAffaire.Total_TTC = Math.round(aggregated.ChiffreAffaire.Total_TTC * 100) / 100;
+        aggregated.ChiffreAffaire.Total_HT = Math.round(aggregated.ChiffreAffaire.Total_HT * 100) / 100;
+        aggregated.ChiffreAffaire.Total_TVA = Math.round(aggregated.ChiffreAffaire.Total_TVA * 100) / 100;
+
+        livestats = [aggregated];
       }
 
       if (livestats.length === 0) {
