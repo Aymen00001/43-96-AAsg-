@@ -429,13 +429,12 @@ const UpdateTiquer = async (req, res) => {
       console.log(`   - date2: "${endDateString}"`);
 
       const db = await connectToDatabase();
-      const collection = db.collection('livestats');
-
-      console.log(`📊 Executing MongoDB aggregation query...`);
-      console.log(`   - IdCRM filter: "${idCRM}"`);
-      console.log(`   - Date range: ${startDateString} to ${endDateString}`);
-
-      const livestats = await collection.aggregate([
+      
+      // First try to get data from livestats collection (closure/aggregated data)
+      const livestatsCollection = db.collection('livestats');
+      console.log(`📊 Querying livestats collection...`);
+      
+      let livestats = await livestatsCollection.aggregate([
         {
           $match: {
             IdCRM: idCRM,
@@ -444,17 +443,64 @@ const UpdateTiquer = async (req, res) => {
         },
       ]).toArray();
 
-      console.log(`✅ MongoDB query returned ${livestats.length} records`);
+      console.log(`✅ livestats collection returned ${livestats.length} records`);
+
+      // If livestats is empty, aggregate from Tiquer collection (live transactions)
+      if (livestats.length === 0) {
+        console.log(`⚠️  No closure data found, falling back to live Tiquer data...`);
+        const tiquerCollection = db.collection('Tiquer');
+        
+        const tiquerData = await tiquerCollection.aggregate([
+          {
+            $match: {
+              IdCRM: idCRM,
+              Date: { $gte: startDateString, $lte: endDateString }
+            }
+          },
+          {
+            $group: {
+              _id: '$Date',
+              date: { $first: '$Date' },
+              IdCRM: { $first: '$IdCRM' },
+              Total_TTC: { $sum: '$TTC' },
+              Total_Ht: { $sum: { $ifNull: ['$Totals.Total_Ht', 0] } },
+              Total_TVA: { $sum: { $ifNull: ['$Totals.Total_TVA', 0] } },
+              ticketCount: { $sum: 1 },
+              paymentMethods: { $push: '$PaymentMethods' }
+            }
+          },
+          { $sort: { date: 1 } }
+        ]).toArray();
+
+        console.log(`📊 Aggregated ${tiquerData.length} date(s) from Tiquer collection`);
+
+        if (tiquerData.length === 0) {
+          const response = { msg: "Rien de statistique trouvé pour ces dates spécifiées", success: true, data: [] };
+          console.log(`📤 Sending response:`, JSON.stringify(response, null, 2));
+          return res.status(200).json(response);
+        }
+
+        // Format aggregated data
+        livestats = tiquerData.map(item => ({
+          IdCRM: item.IdCRM,
+          date: item.date,
+          Total_TTC: parseFloat(item.Total_TTC.toFixed(2)),
+          Total_Ht: parseFloat(item.Total_Ht.toFixed(2)),
+          Total_TVA: parseFloat(item.Total_TVA.toFixed(2)),
+          ticketCount: item.ticketCount,
+          source: 'live'
+        }));
+      }
 
       if (livestats.length === 0) {
         console.log(`⚠️  No data found for idCRM="${idCRM}" in date range`);
-        const response = { msg: "Rien de statistique trouvé pour ces dates spécifiées", success: true ,data:livestats};
+        const response = { msg: "Rien de statistique trouvé pour ces dates spécifiées", success: true, data: livestats };
         console.log(`📤 Sending response:`, JSON.stringify(response, null, 2));
         return res.status(200).json(response);
       } else {
         console.log(`📈 Found data! Calculating sums...`);
         const sumsForEachLine = calculateSumsForEachLine(livestats);
-        const response = { msg:"Des statistiques existent pour ces dates spécifiées", success: true ,data:sumsForEachLine};
+        const response = { msg: "Des statistiques existent pour ces dates spécifiées", success: true, data: sumsForEachLine };
         console.log(`📤 Sending response:`, JSON.stringify(response, null, 2));
         res.status(200).json(response);
       }
@@ -482,11 +528,11 @@ const UpdateTiquer = async (req, res) => {
       console.log(`   - date2: "${endDateString}"`);
 
       const db = await connectToDatabase();
-      const collection = db.collection('TempsReels');
+      const tempsReelsCollection = db.collection('TempsReels');
 
-      console.log(`📊 Executing MongoDB aggregation query on TempsReels collection...`);
+      console.log(`📊 Querying TempsReels collection...`);
 
-      const livestats = await collection.aggregate([
+      let livestats = await tempsReelsCollection.aggregate([
         {
           $match: {
             IdCRM: idCRM,
@@ -495,16 +541,34 @@ const UpdateTiquer = async (req, res) => {
         },
       ]).toArray();
       
-      console.log(`✅ Query returned ${livestats.length} detailed records`);
+      console.log(`✅ TempsReels query returned ${livestats.length} records`);
+      
+      // If TempsReels is empty, fall back to live Tiquer data
+      if (livestats.length === 0) {
+        console.log(`⚠️  No detailed data in TempsReels, falling back to live Tiquer data...`);
+        const tiquerCollection = db.collection('Tiquer');
+        
+        livestats = await tiquerCollection.aggregate([
+          {
+            $match: {
+              IdCRM: idCRM,
+              Date: { $gte: startDateString, $lte: endDateString }
+            }
+          },
+          { $sort: { Date: 1, HeureTicket: 1 } }
+        ]).toArray();
+
+        console.log(`📊 Aggregated ${livestats.length} live tickets from Tiquer collection`);
+      }
       
       if (livestats.length === 0) {
         console.log(`⚠️  No detailed data found for idCRM="${idCRM}" in date range`);
-        const response = { msg: "Rien de statistique trouvé pour ces dates spécifiées", success: true ,data:livestats};
+        const response = { msg: "Rien de statistique trouvé pour ces dates spécifiées", success: true, data: livestats };
         console.log(`📤 Sending response with ${livestats.length} records`);
         return res.status(200).json(response);
       } else {
         console.log(`📈 Sample record:`, livestats[0]);
-        const response = { msg:"Des statistiques existent pour ces dates spécifiées", success: true ,data:livestats};
+        const response = { msg: "Des statistiques existent pour ces dates spécifiées", success: true, data: livestats };
         console.log(`📤 Sending response with ${livestats.length} records`);
         res.status(200).json(response);
       }
