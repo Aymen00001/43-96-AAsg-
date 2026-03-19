@@ -4,7 +4,12 @@
   "license": "MIT",
   "scripts": {
     "start": "node ./bin/www",
-    "server": "nodemon ./bin/www"
+    "server": "nodemon ./bin/www",
+    "test": "node run-tests.js",
+    "test:payment": "npx mocha tests/payment-methods.test.js --reporter spec",
+    "test:api": "npx mocha tests/api-integration.test.js --reporter spec",
+    "seed": "node seed-test-data.js",
+    "clean-test-data": "node delete-test-tickets.js"
   },
   "dependencies": {
     "cookie-parser": "^1.4.6",

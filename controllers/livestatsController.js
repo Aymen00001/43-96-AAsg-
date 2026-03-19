@@ -335,6 +335,12 @@ const UpdateTiquer = async (req, res) => {
         }
       }
 
+      // Handle closure number (shift) from 'Z' field (Z can be 0, so check !== undefined)
+      if (data.Z !== undefined && data.Z !== null) {
+        data.closureNumber = String(data.Z).trim();
+        console.log(`Closure number (shift) extracted: ${data.closureNumber}`);
+      }
+
       // Validate and normalize payment methods
       if (data.PaymentMethods && Array.isArray(data.PaymentMethods)) {
         let totalPaymentAmount = 0;
@@ -1204,6 +1210,17 @@ const updateStatus = async () => {
         }
       }
 
+      // filter by closure number (shift) - check both closureNumber and Z fields
+      const closureNumber = req.query.closureNumber;
+      if (closureNumber && typeof closureNumber === 'string') {
+        const shiftValue = String(closureNumber).trim();
+        // Create an $or condition to match either field
+        match.$or = match.$or || [];
+        match.$or.push({ closureNumber: shiftValue });
+        match.$or.push({ Z: isNaN(shiftValue) ? shiftValue : parseInt(shiftValue) });
+        console.log(`  Closure number (shift) filter: "${shiftValue}" (matching both closureNumber and Z fields)`);
+      }
+
       console.log(`  Final match query: ${JSON.stringify(match)}`);
       
       pipeline.push({ $match: match });
@@ -1672,13 +1689,35 @@ res.send(htmlContent.replace(/undefined/g, ''));
       const idTiquer = String(req.params.idTiquer); // Keep as string to match database storage
       const lang = (req.query.lang || 'en').toLowerCase(); // Get language from query param
       const t = (key) => getTranslation(lang, key); // Translation function
-      
+
       const db = await connectToDatabase();
       const collection = db.collection('Tiquer');
-      const ticket = await collection.findOne({ IdCRM: idCRM, Date: date, idTiquer: idTiquer });
-      
+
+      // Build tolerant query for common variations (string/number, date formats)
+      const idCRMVariants = [idCRM];
+      const numericIdCRM = Number(idCRM);
+      if (!Number.isNaN(numericIdCRM)) idCRMVariants.push(numericIdCRM);
+
+      const idTiquerVariants = [idTiquer];
+      const numericIdTiquer = Number(idTiquer);
+      if (!Number.isNaN(numericIdTiquer)) idTiquerVariants.push(numericIdTiquer);
+
+      const dateVariants = [date];
+      const dateHyphen = date.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
+      if (dateHyphen !== date) dateVariants.push(dateHyphen);
+      const datePlain = date.replace(/-/g, '');
+      if (datePlain !== date) dateVariants.push(datePlain);
+
+      console.log(`[getTicketRestoById] Querying ticket with IdCRM in [${idCRMVariants.join(', ')}], Date in [${dateVariants.join(', ')}], idTiquer in [${idTiquerVariants.join(', ')}]`);
+
+      const ticket = await collection.findOne({
+        IdCRM: { $in: idCRMVariants },
+        Date: { $in: dateVariants },
+        idTiquer: { $in: idTiquerVariants }
+      });
+
       if (!ticket) {
-        return res.status(404).send('<html><body>Ticket not found</body></html>');
+        return res.status(404).send(`<html><body>Ticket not found. Query attempted: IdCRM=${idCRM}, Date=${date}, idTiquer=${idTiquer}</body></html>`);
       }
 
       tickets = [ticket];

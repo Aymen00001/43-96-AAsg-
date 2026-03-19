@@ -197,6 +197,7 @@ For endpoints that require authentication:
   "merchant_name": "MISTER GRILL",
   "merchant_address": "71 COURS DES ROCHES",
   "SIRET": "12345678901234",
+  "Z": "5",
   "ConsumptionMode": "SUR PLACE",
   "Menu": [
     {
@@ -258,6 +259,7 @@ For endpoints that require authentication:
 
 **Optional Fields:**
 - `TTC` - Total with tax
+- `Z` - Closure number (shift identifier) - maps to `closureNumber` field in database
 - `ConsumptionMode` - **ENGLISH ONLY** - One of: `"Takeaway"`, `"Dine-in"`, `"Delivery"` (case-sensitive). Returns 400 if invalid or in other languages
 - `PaymentMethods` - Payment methods array (new format, recommended)
 - `ModePaiement` - Payment methods array (legacy format, deprecated)
@@ -297,6 +299,19 @@ If an invalid ConsumptionMode is provided, the API returns:
 }
 ```
 
+**Supported Payment Methods:**
+The system supports 7 payment methods with English identifiers for API validation:
+
+| Code | Name | French | Description |
+|------|------|--------|-------------|
+| `CARD` | Card Payment | Carte bancaire | Credit/debit card transactions |
+| `CASH` | Cash | Espèces | Cash payments |
+| `MEAL_VOUCHER` | Meal Voucher | Ticket restaurant | Restaurant meal vouchers |
+| `CHECK` | Check | Chèque | Check payments |
+| `FIDELITY_POINTS` | Fidelity Points | Points de fidélité | Loyalty points redemption |
+| `STORE_CREDIT` | Store Credit | Avoir | Account credit/gift cards |
+| `CORPORATE_ACCOUNT` | Corporate Account | Client en compte | Business account billing |
+
 **Payment Method Structure (New Format - Recommended):**
 ```json
 {
@@ -313,10 +328,21 @@ If an invalid ConsumptionMode is provided, the API returns:
 }
 ```
 
+**Valid Payment Method Values:**
+- `CARD` - Card Payment (Carte bancaire)
+- `CASH` - Cash (Espèces)
+- `MEAL_VOUCHER` - Meal Voucher (Ticket restaurant)
+- `CHECK` - Check (Chèque)
+- `FIDELITY_POINTS` - Fidelity Points (Points de fidélité)
+- `STORE_CREDIT` - Store Credit (Avoir)
+- `CORPORATE_ACCOUNT` - Corporate Account (Client en compte)
+
 **Payment Method Validation:**
 - Each payment method must have `payment_method` (string) and `amount` (number)
+- `payment_method` must be one of the 7 English identifiers listed above
 - Sum of all payment amounts MUST equal ticket TTC (with 0.01 tolerance for floating point)
 - Returns 400 error if payment amounts don't match ticket total
+- Backend should normalize French payment method values to English identifiers
 
 **Payment Method Structure (Legacy Format - Deprecated):**
 ```json
@@ -602,38 +628,98 @@ GET /get-payment-statistics?idCRM=2435&date1=20260101&date2=20260228
 {
   "status": "success",
   "data": {
-    "total_revenue": 5234.50,
-    "total_transactions": 45,
+    "total_revenue": 12450.75,
+    "total_transactions": 342,
     "date_range": {
       "start": "20260101",
       "end": "20260228"
     },
     "payment_methods": {
       "CASH": {
-        "total_amount": 3000.00,
-        "transaction_count": 25,
-        "average_transaction": 120.00
+        "total_amount": 3450.00,
+        "transaction_count": 85,
+        "average_transaction": 40.59
       },
       "CARD": {
-        "total_amount": 2234.50,
-        "transaction_count": 20,
-        "average_transaction": 111.73
+        "total_amount": 5234.50,
+        "transaction_count": 120,
+        "average_transaction": 43.62
+      },
+      "MEAL_VOUCHER": {
+        "total_amount": 1875.25,
+        "transaction_count": 75,
+        "average_transaction": 25.00
+      },
+      "CHECK": {
+        "total_amount": 890.00,
+        "transaction_count": 12,
+        "average_transaction": 74.17
+      },
+      "FIDELITY_POINTS": {
+        "total_amount": 575.50,
+        "transaction_count": 28,
+        "average_transaction": 20.55
+      },
+      "STORE_CREDIT": {
+        "total_amount": 250.00,
+        "transaction_count": 10,
+        "average_transaction": 25.00
+      },
+      "CORPORATE_ACCOUNT": {
+        "total_amount": 175.50,
+        "transaction_count": 12,
+        "average_transaction": 14.63
       }
     },
     "payment_breakdown": [
       {
-        "payment_method": "CASH",
-        "total_amount": 3000.00,
-        "transaction_count": 25,
-        "average_amount": 120.00,
-        "percentage_of_total": 57.38
+        "payment_method": "CARD",
+        "total_amount": 5234.50,
+        "transaction_count": 120,
+        "average_amount": 43.62,
+        "percentage_of_total": 42.01
       },
       {
-        "payment_method": "CARD",
-        "total_amount": 2234.50,
-        "transaction_count": 20,
-        "average_amount": 111.73,
-        "percentage_of_total": 42.62
+        "payment_method": "CASH",
+        "total_amount": 3450.00,
+        "transaction_count": 85,
+        "average_amount": 40.59,
+        "percentage_of_total": 27.70
+      },
+      {
+        "payment_method": "MEAL_VOUCHER",
+        "total_amount": 1875.25,
+        "transaction_count": 75,
+        "average_amount": 25.00,
+        "percentage_of_total": 15.06
+      },
+      {
+        "payment_method": "CHECK",
+        "total_amount": 890.00,
+        "transaction_count": 12,
+        "average_amount": 74.17,
+        "percentage_of_total": 7.15
+      },
+      {
+        "payment_method": "FIDELITY_POINTS",
+        "total_amount": 575.50,
+        "transaction_count": 28,
+        "average_amount": 20.55,
+        "percentage_of_total": 4.62
+      },
+      {
+        "payment_method": "STORE_CREDIT",
+        "total_amount": 250.00,
+        "transaction_count": 10,
+        "average_amount": 25.00,
+        "percentage_of_total": 2.01
+      },
+      {
+        "payment_method": "CORPORATE_ACCOUNT",
+        "total_amount": 175.50,
+        "transaction_count": 12,
+        "average_amount": 14.63,
+        "percentage_of_total": 1.41
       }
     ]
   },
@@ -668,12 +754,13 @@ GET /get-payment-statistics?idCRM=2435&date1=20260101&date2=20260228
 | search | string | No | Keyword search on ticket number, order number, customer name, etc. case‑insensitive |
 | paymentMethod | string | No | Filter by payment method name ("CARD", "CASH", etc.) |
 | fulfillmentMode | string | No | Filter by consumption/fulfillment mode ("SurPlace", "Livraison", etc.) |
+| closureNumber | string | No | Filter by closure number/shift identifier |
 | page | number | No | Page number for pagination (default 1) |
 | limit | number | No | Items per page (default 50) |
 
 **Example Request:**
 ```
-GET /get-tickets?idCRM=2435&date1=20260101&date2=20260131&search=123&paymentMethod=CARD&page=2&limit=25
+GET /get-tickets?idCRM=2435&date1=20260101&date2=20260131&search=123&paymentMethod=CARD&closureNumber=5&page=2&limit=25
 ```
 
 **Response format:**
@@ -1256,6 +1343,7 @@ Stores individual ticket records
 - `merchant_name` - Merchant/restaurant name
 - `merchant_address` - Merchant/restaurant address
 - `SIRET` - SIRET identification number
+- `closureNumber` - Shift/closure identifier (derived from "Z" field in POST request)
 - `Menu[]` - Line items
 - `Totals` - Totals object
 - `ModePaiement[]` - Payment methods
