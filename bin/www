@@ -27,20 +27,10 @@ var server = http.createServer(app);
  */
 const io = socketIo(server, {
   cors: {
-    origin: [
-      'https://harrag09.github.io',
-      'http://localhost:3002',
-      'https://statistics.makseb.fr',
-      'http://statistics.makseb.fr',
-      'http://localhost:3001',
-      'http://localhost:3000',
-      'https://statistics.sc3makseb.universe.wf',
-      'http://statistics.sc3makseb.universe.wf',
-      'http://192.168.1.2:3001',
-      'http://192.168.1.45:3001',
-      'https://statisticsv2.makseb.fr',
-      'http://statisticsv2.makseb.fr'
-    ],
+    origin: (origin, callback) => {
+      console.log('[SOCKET] CORS origin check:', origin);
+      callback(null, true); // allow all origins for now (dev)
+    },
     methods: ['GET', 'POST'],
     credentials: true
   }
@@ -48,6 +38,14 @@ const io = socketIo(server, {
 
 // Make io available to app
 app.io = io;
+
+// Socket.io connection debugging (for CORS troubleshooting)
+io.on('connection', (socket) => {
+  console.log(`[SOCKET] client connected: ${socket.id} origin=${socket.handshake.headers.origin}`);
+  socket.on('disconnect', (reason) => {
+    console.log(`[SOCKET] client disconnected: ${socket.id} reason=${reason}`);
+  });
+});
 
 /**
  * Listen on provided port, on all network interfaces.

@@ -19,16 +19,25 @@ const signin = async (req, res) => {
 
     if (!response) {
       console.log("User not found");
-      return res.status(200).json({
+      return res.status(401).json({
         msg: "User does not exist.",
         success: false,
       });
-    } else {
-      const access_token = jwt.sign(
-        { id: response._id, Role: response.Role },
-        secretKey,
-        {}
-      );
+    }
+
+    if (response.Password !== Password) {
+      console.log("Incorrect password");
+      return res.status(401).json({
+        msg: "Incorrect password.",
+        success: false,
+      });
+    }
+
+    const access_token = jwt.sign(
+      { id: response._id, Role: response.Role },
+      secretKey,
+      {}
+    );
 
       const decodedToken = jwt.decode(access_token);
       if (decodedToken) {
@@ -44,7 +53,6 @@ const signin = async (req, res) => {
         success: true,
         data: user2,
       });
-    }
   } catch (err) {
     console.error("Error during signin:", err);
     res.status(500).json({ msg: err?.message, success: false });

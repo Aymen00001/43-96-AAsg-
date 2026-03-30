@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Makseb Statistique API Documentation</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        .header h1 { font-size: 2.5em; margin-bottom: 10px; }
+        .header p { font-size: 1.1em; opacity: 0.9; }
+        .content { padding: 40px; }
+        .section {
+            margin-bottom: 40px;
+            border-left: 4px solid #667eea;
+            padding-left: 20px;
+        }
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+        .section h3 {
+            color: #764ba2;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 1.3em;
+        }
+        .endpoint {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .method {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-right: 10px;
+            color: white;
+            font-size: 0.9em;
+        }
+        .post { background: #FF6B6B; }
+        .get { background: #4ECDC4; }
+        .put { background: #FFD93D; color: #333; }
+        .delete { background: #FF6B6B; }
+        .path {
+            font-family: 'Courier New', monospace;
+            background: #f0f0f0;
+            padding: 8px 12px;
+            border-radius: 4px;
+            display: inline-block;
+            margin: 10px 0;
+        }
+        .params, .response {
+            background: #fafafa;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 12px;
+            margin: 10px 0;
+            font-size: 0.95em;
+        }
+        .params h4, .response h4 {
+            color: #667eea;
+            margin-bottom: 8px;
+            font-size: 1em;
+        }
+        .param-list li {
+            margin-left: 20px;
+            margin-bottom: 8px;
+        }
+        code {
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        .category {
+            background: #f9f9f9;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+            border-left: 5px solid #667eea;
+        }
+        .note {
+            background: #e3f2fd;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background: #667eea;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        .new-badge {
+            display: inline-block;
+            background: #4CAF50;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .fixed-badge {
+            display: inline-block;
+            background: #2196F3;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍽️ Makseb Statistique API</h1>
+            <p>Complete API Reference & Endpoint Documentation</p>
+            <p style="font-size: 0.9em; margin-top: 15px;">Last Updated: March 30, 2026</p>
+        </div>
+
+        <div class="content">
+            <!-- Overview -->
+            <div class="section">
+                <h2>📋 Overview</h2>
+                <p>The Makseb Statistique API provides comprehensive endpoints for managing restaurant sales data, ticket records, payment information, and cash register closures (Z records). The API supports real-time updates via Socket.IO and includes advanced filtering and pagination capabilities.</p>
+                
+                <div class="note">
+                    <strong>ℹ️ Updated Features:</strong> This version includes new Z (Cloture) management endpoints and improved multi-filter logic for better data filtering accuracy.
+                </div>
+
+                <h3>Base URL</h3>
+                <div class="path">http://localhost:8002</div>
+
+                <h3>Total Endpoints: 32</h3>
+                <table>
+                    <tr>
+                        <th>Category</th>
+                        <th>Count</th>
+                        <th>Purpose</th>
+                    </tr>
+                    <tr>
+                        <td>Sales Statistics</td>
+                        <td>5</td>
+                        <td>Sales summaries and financial data</td>
+                    </tr>
+                    <tr>
+                        <td>Email Services</td>
+                        <td>2</td>
+                        <td>Email notifications and PDF distribution</td>
+                    </tr>
+                    <tr>
+                        <td>Tickets/Orders</td>
+                        <td>7</td>
+                        <td>Ticket retrieval with filtering</td>
+                    </tr>
+                    <tr>
+                        <td>Payment Statistics</td>
+                        <td>1</td>
+                        <td>Payment method analysis</td>
+                    </tr>
+                    <tr>
+                        <td>Store Management</td>
+                        <td>5</td>
+                        <td>Store configuration and licensing</td>
+                    </tr>
+                    <tr>
+                        <td>Categories & Images</td>
+                        <td>3</td>
+                        <td>Product data synchronization</td>
+                    </tr>
+                    <tr>
+                        <td>Z/Closures <span class="new-badge">NEW</span></td>
+                        <td>5</td>
+                        <td>Cash register closure management</td>
+                    </tr>
+                    <tr>
+                        <td>Documentation</td>
+                        <td>1</td>
+                        <td>API reference</td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- Sales Statistics -->
+            <div class="section">
+                <h2>💰 Sales Statistics Endpoints</h2>
+
+                <div class="endpoint">
+                    <span class="method post">POST</span>
+                    <span class="path">/update-live-stats</span>
+                    <p>Update real-time sales statistics</p>
+                    <div class="params">
+                        <h4>Parameters:</h4>
+                        <ul class="param-list">
+                            <li><code>idCRM</code> - Store ID</li>
+                            <li><code>salesData</code> - Sale information object</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <span class="method post">POST</span>
+                    <span class="path">/update-transaction-data</span>
+                    <p>Update transaction and payment information</p>
+                    <div class="params">
+                        <h4>Parameters:</h4>
+                        <ul class="param-list">
+                            <li><code>idCRM</code> - Store ID</li>
+                            <li><code>transactionData</code> - Transaction object</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <span class="path">/get-sales-summary</span>
+                    <p>Get aggregated sales summary for a date range</p>
+                    <div class="params">
+                        <h4>Query Parameters:</h4>
+                        <ul class="param-list">
+                            <li><code>idCRM</code> (required) - Store ID</li>
+                            <li><code>date1</code> (required) - Start date (YYYYMMDD)</li>
+                            <li><code>date2</code> (required) - End date (YYYYMMDD)</li>
+                        </ul>
+                    </div>
+                    <div class="response">
+                        <h4>Response:</h4>
+                        <ul class="param-list">
+                            <li><code>success</code> - Boolean</li>
+                            <li><code>totalTTC</code> - Total with tax</li>
+                            <li><code>totalHT</code> - Total without tax</li>
+                            <li><code>paymentMethods</code> - Breakdown by payment type</li>
+                            <li><code>fulfillmentMethods</code> - Breakdown by consumption mode</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <span class="path">/get-detailed-sales-summary</span>
+                    <p>Get detailed financial breakdown with more metrics</p>
+                    <div class="params">
+                        <h4>Query Parameters:</h4>
+                        <ul class="param-list">
+                            <li><code>idCRM</code> - Store ID</li>
+                            <li><code>date1</code> - Start date (YYYYMMDD)</li>
+                            <li><code>date2</code> - End date (YYYYMMDD)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <span class="method post">POST</span>
+                    <span class="path">/update-payment-settlement</span>
+                    <p>Update payment settlement and reglement data</p>
+                </div>
+            </div>
+
+            <!-- Tickets/Orders -->
+            <div class="section">
+                <h2>🎫 Tickets & Orders Endpoints</h2>
+
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <span class="path">/get-tickets</span>
+                    <span class="fixed-badge">FIXED</span>
+                    <p>Get tickets with advanced filtering <strong>(Multi-filter logic corrected)</strong></p>
+                    <div class="params">
+                        <h4>Query Parameters:</h4>
+                        <ul class="param-list">
+                            <li><code>idCRM</code> (required) - Store ID</li>
+                            <li><code>date1</code> (required) - Start date (YYYYMMDD)</li>
+                            <li><code>date2</code> (required) - End date (YYYYMMDD)</li>
+                            <li><code>page</code> (optional, default: 1) - Page number</li>
+                            <li><code>limit</code> (optional, default: 50) - Records per page</li>
+                            <li><code>search</code> (optional) - Text search (ticket #, customer)</li>
+                            <li><code>paymentMethod</code> (optional) - Filter: CARD, CASH, MEAL_VOUCHER, CHECK, etc.</li>
+                            <li><code>fulfillmentMode</code> (optional) - Filter: Sur Place, À Emporter, Livraison</li>
+                        </ul>
+                    </div>
+                    <div class="note">
+                        <strong>✅ New in this version:</strong> Multiple filters now use AND logic correctly.
+                        <br/>Example: <code>paymentMethod=CARD&fulfillmentMode=Takeaway</code> returns CARD payments that are Takeaway (not CARD OR Takeaway)
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <span class="path">/get-orders</span>
+                    <p>Alias for /get-tickets (same implementation for orders listing)</p>
+                </div>
+
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <span class="path">/get-tickets-by-z/:idCRM/:zId</span>
+                    <span class="new-badge">NEW</span>
+                    <p>Get tickets for a specific closure period (Z number)</p>
+                    <div class="params">
+                        <h4>Path Parameters:</h4>
+                        <ul class="param-list">
+                            <li><code>:idCRM</code> (required) - Store ID</li>
+                            <li><code>:zId</code> (required) - Closure ID (Z number)</li>
+                        </ul>
+                        <h4>Query Parameters:</h4>
+                        <ul class="param-list">
+                            <li><code>search</code> (optional) - Text search</li>
+                            <li><code>paymentMethod</code> (optional) - Payment filter</li>
+                            <li><code>fulfillmentMode</code> (optional) - Fulfillment filter</li>
+                            <li><code>page</code> (optional, default: 1) - Page number</li>
+                            <li><code>limit</code> (optional, default: 50) - Records per page</li>
+                        </ul>
+                    </div>
+                    <div class="response">
+                        <h4>Response:</h4>
+                        <ul class="param-list">
+                            <li><code>data</code> - Array of tickets between closure N and N-1</li>
+                            <li><code>totalCount</code> - Total number of tickets in period</li>
+                            <li><code>page</code> - Current page</li>
+                            <li><code>totalPages</code> - Total number of pages</li>
+                        </ul>
+                    </div>
+                    <div class="note">
+                        <strong>ℹ️ How it works:</strong> Returns all tickets between the selected closure's timestamp and the previous closure's timestamp. Perfect for reconciliation by shift.
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <span class="method post">POST</span>
+                    <span class="path">/update-ticket</span>
+                    <p>Update individual ticket information</p>
+                </div>
+
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <span class="path">/display-tickets</span>
+                    <p>Generate HTML display of tickets</p>
+                </div>
+
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <span class="path">/display-tickets-detailed</span>
+                    <p>Generate detailed HTML ticket display</p>
+                </div>
+
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <span class="path">/display-ticket-receipt/:idCRM/:date/:idTiquer</span>
+                    <p>Get formatted ticket receipt for display/printing</p>
+                    <div class="params">
+                        <h4>Path Parameters:</h4>
+                        <ul class="param-list">
+                            <li><code>:idCRM</code> - Store ID</li>
+                            <li><code>:date</code> - Ticket date</li>
+                            <li><code>:idTiquer</code> - Ticket ID</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Z/Closures Management -->
+            <div class="section">
+                <h2>🔐 Z (Cloture) Management Endpoints <span class="new-badge">NEW</span></h2>
+                <p>Cash register closure (Z record) management for shift tracking and financial reconciliation.</p>
+
+                <div class="endpoint">
+                    <span class="method post">POST</span>
+                    <span class="path">/z</span>
+                    <p>Create a new closure record</p>
+                    <div class="params">
+                        <h4>Request Body:</h4>
+                        <ul class="param-list">
+                            <li><code>IDCloture</code> (number) - Closure ID</li>
+                            <li><code>Date_cloture</code> (date) - Closure date</li>
+                            <li><code>HeureCloture</code> (string) - Closure time HH:MM:SS</li>
+                            <li><code>User</code> (string) - Cashier name</li>
+                            <li><code>RECETTE</code> (number) - Total sales</li>
+                            <li><code>RETRAIT</code> (number) - Withdrawal amount</li>
+                            <li><code>IdCRM</code> (string) - Store ID</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <span class="path">/z/:idCRM</span>
+                    <p>Get all closures for a store (no filtering)</p>
+                    <div class="params">
+                        <h4>Path Parameters:</h4>
+                        <ul class="param-list">
+                            <li><code>:idCRM</code> (required) - Store ID</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <span class="path">/closures/:idCRM</span>
+                    <span class="new-badge">NEW</span>
+                    <p>Get closures with optional date range filtering and pagination</p>
+                    <div class="params">
+                        <h4>Path Parameters:</h4>
+                        <ul class="param-list">
+                            <li><code>:idCRM</code> (required) - Store ID</li>
+                        </ul>
+                        <h4>Query Parameters:</h4>
+                        <ul class="param-list">
+                            <li><code>date1</code> (optional) - Start date (YYYYMMDD)</li>
+                            <li><code>date2</code> (optional) - End date (YYYYMMDD)</li>
+                            <li><code>page</code> (optional, default: 1) - Page number</li>
+                            <li><code>limit</code> (optional, default: 50) - Records per page</li>
+                        </ul>
+                    </div>
+                    <div class="response">
+                        <h4>Response:</h4>
+                        <ul class="param-list">
+                            <li><code>success</code> - Boolean</li>
+                            <li><code>data</code> - Array of closure records</li>
+                            <li><code>totalCount</code> - Total closures in range</li>
+                            <li><code>totalPages</code> - Total number of pages</li>
+                            <li><code>page</code> - Current page</li>
+                            <li><code>limit</code> - Records per page</li>
+                        </ul>
+                    </div>
+                    <div class="note">
+                        <strong>✨ Feature:</strong> Automatically filters closures by selected date range. Used by frontend to populate closure dropdown scoped to current time period selection.
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <span class="method put">PUT</span>
+                    <span class="path">/z/:idCRM/:zId</span>
+                    <p>Update a closure record</p>
+                    <div class="params">
+                        <h4>Path Parameters:</h4>
+                        <ul class="param-list">
+                            <li><code>:idCRM</code> - Store ID</li>
+                            <li><code>:zId</code> - Closure ID</li>
+                        </ul>
+                        <h4>Request Body:</h4>
+                        <ul class="param-list">
+                            <li><code>RECETTE</code> (optional) - Updated sales amount</li>
+                            <li><code>RETRAIT</code> (optional) - Updated withdrawal</li>
+                            <li><code>User</code> (optional) - Updated cashier name</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <span class="method delete">DELETE</span>
+                    <span class="path">/z/:idCRM/:zId</span>
+                    <p>Delete a closure record</p>
+                    <div class="params">
+                        <h4>Path Parameters:</h4>
+                        <ul class="param-list">
+                            <li><code>:idCRM</code> - Store ID</li>
+                            <li><code>:zId</code> - Closure ID</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Store Management -->
+            <div class="section">
+                <h2>🏪 Store Management Endpoints</h2>
+
+                <div class="endpoint">
+                    <span class="method post">POST</span>
+                    <span class="path">/update-store-status</span>
+                    <p>Update store status and configuration</p>
+                </div>
+
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <span class="path">/get-license/:idCRM</span>
+                    <p>Get store license information</p>
+                </div>
+
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <span class="path">/get-store-name/:idCRM</span>
+                    <p>Get store name and details</p>
+                </div>
+
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <span class="path">/update-license/:idCRM/:action</span>
+                    <p>Update license status</p>
+                </div>
+
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <span class="path">/update-database/:idCRM/:action</span>
+                    <p>Update database configuration</p>
+                </div>
+            </div>
+
+            <!-- Payment Statistics -->
+            <div class="section">
+                <h2>💳 Payment Analytics</h2>
+
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <span class="path">/get-payment-statistics</span>
+                    <p>Get detailed payment method statistics</p>
+                </div>
+            </div>
+
+            <!-- Email Services -->
+            <div class="section">
+                <h2>📧 Email Services</h2>
+
+                <div class="endpoint">
+                    <span class="method post">POST</span>
+                    <span class="path">/send-welcome-email</span>
+                    <p>Send welcome/notification email</p>
+                </div>
+
+                <div class="endpoint">
+                    <span class="method post">POST</span>
+                    <span class="path">/send-pdf-email</span>
+                    <p>Send PDF report via email</p>
+                </div>
+            </div>
+
+            <!-- Categories -->
+            <div class="section">
+                <h2>📁 Categories & Images</h2>
+
+                <div class="endpoint">
+                    <span class="method post">POST</span>
+                    <span class="path">/sync-categories-to-folder</span>
+                    <p>Sync product categories to file system</p>
+                </div>
+
+                <div class="endpoint">
+                    <span class="method post">POST</span>
+                    <span class="path">/sync-categories-to-database</span>
+                    <p>Sync product categories to database</p>
+                </div>
+
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <span class="path">/get-product-images</span>
+                    <p>Get product image inventory</p>
+                </div>
+            </section>
+
+            <!-- Common Filters -->
+            <div class="section">
+                <h2>🔍 Common Filters & Parameters</h2>
+
+                <h3>Payment Methods</h3>
+                <p>Use these values for <code>paymentMethod</code> parameter:</p>
+                <ul>
+                    <li><code>CARD</code> - Credit/Debit Card</li>
+                    <li><code>CASH</code> - Cash</li>
+                    <li><code>MEAL_VOUCHER</code> - Meal Voucher</li>
+                    <li><code>CHECK</code> - Check</li>
+                    <li><code>FIDELITY_POINTS</code> - Fidelity Points</li>
+                    <li><code>STORE_CREDIT</code> - Store Credit</li>
+                    <li><code>CORPORATE_ACCOUNT</code> - Corporate Account</li>
+                </ul>
+
+                <h3>Fulfillment/Consumption Modes</h3>
+                <p>Use these values for <code>fulfillmentMode</code> parameter:</p>
+                <ul>
+                    <li><code>Sur Place</code> - Dine-in</li>
+                    <li><code>À Emporter</code> - Takeaway/To-go</li>
+                    <li><code>Livraison</code> - Delivery</li>
+                </ul>
+
+                <h3>Date Format</h3>
+                <p>All dates use <strong>YYYYMMDD</strong> format:</p>
+                <ul>
+                    <li><code>20260330</code> = March 30, 2026</li>
+                    <li><code>20260101</code> = January 1, 2026</li>
+                    <li><code>20251215</code> = December 15, 2025</li>
+                </ul>
+
+                <h3>Time Format (Closures)</h3>
+                <p>Time in closure records uses <strong>HH:MM:SS</strong> format (24-hour):</p>
+                <ul>
+                    <li><code>23:00:00</code> = 11 PM</li>
+                    <li><code>12:30:45</code> = 12:30:45 PM</li>
+                    <li><code>00:15:30</code> = 12:15:30 AM</li>
+                </ul>
+            </div>
+
+            <!-- Examples -->
+            <div class="section">
+                <h2>📝 Usage Examples</h2>
+
+                <h3>Example 1: Get Sales Summary</h3>
+                <div class="path">GET /get-sales-summary?idCRM=9999&date1=20260301&date2=20260330</div>
+                <p>Returns aggregated sales for store 9999 for March 1-30, 2026</p>
+
+                <h3>Example 2: Filter Tickets with Multiple Criteria</h3>
+                <div class="path">GET /get-tickets?idCRM=9999&date1=20260315&date2=20260330&paymentMethod=CARD&fulfillmentMode=Takeaway&page=1&limit=25</div>
+                <p>Returns CARD payments that are Takeaway orders (March 15-30, page 1)</p>
+
+                <h3>Example 3: Get Closures for Date Range</h3>
+                <div class="path">GET /closures/9999?date1=20260315&date2=20260330&page=1&limit=100</div>
+                <p>Returns closures (Z records) between March 15-30, 2026</p>
+
+                <h3>Example 4: Get Tickets with Closure Period</h3>
+                <div class="path">GET /get-tickets-by-z/9999/5?paymentMethod=CASH&page=1&limit=50</div>
+                <p>Returns CASH tickets from closure Z 5's period</p>
+
+                <h3>Example 5: Create New Closure</h3>
+                <div class="path">POST /z</div>
+                <pre>Body: {
+  "IDCloture": 11,
+  "Date_cloture": "2026-03-30T23:30:00Z",
+  "HeureCloture": "23:30:00",
+  "User": "Cashier_1",
+  "RECETTE": 2500.50,
+  "RETRAIT": 250.00,
+  "IdCRM": "9999"
+}</pre>
+            </div>
+
+            <!-- Changelog -->
+            <div class="section">
+                <h2>📢 Latest Updates</h2>
+                
+                <div class="category">
+                    <h3>March 30, 2026 - Z Management & Filter Improvements</h3>
+                    <ul style="margin-left: 20px;">
+                        <li><span class="new-badge">NEW</span> <strong>GET /get-tickets-by-z/:idCRM/:zId</strong> - Fetch tickets by closure period</li>
+                        <li><span class="new-badge">NEW</span> <strong>GET /closures/:idCRM</strong> - List closures with date filtering</li>
+                        <li><span class="new-badge">NEW</span> <strong>POST /z, PUT /z, DELETE /z</strong> - Complete Z CRUD operations</li>
+                        <li><span class="fixed-badge">FIXED</span> <strong>Multi-filter Logic</strong> - Filter combinations now use AND instead of OR</li>
+                        <li><span class="new-badge">NEW</span> <strong>Cloture Model</strong> - Dedicated collection for Z records with proper indexing</li>
+                        <li>Frontend closure dropdown with automatic date-range filtering</li>
+                        <li>Separated Z data from individual ticket records (database normalization)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Support -->
+            <div class="section">
+                <h2>❓ Support & Questions</h2>
+                <p>For issues or questions about the API:</p>
+                <ul style="margin-left: 20px;">
+                    <li>Check the backend console logs for detailed operation logs</li>
+                    <li>Verify date formats (YYYYMMDD) match expected format</li>
+                    <li>Ensure idCRM and zId parameters are correct</li>
+                    <li>For pagination, use page starting from 1</li>
+                    <li>Payment and fulfillment filters are case-sensitive</li>
+                </ul>
+            </div>
+
+        </div>
+    </div>
+</body>
+</html>

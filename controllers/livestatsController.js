@@ -1157,18 +1157,22 @@ const updateStatus = async () => {
         Date: { $gte: startDateString, $lte: endDateString }
       };
       
-      console.log(`  Base match query: ${JSON.stringify(match)}`);
+      const andConditions = [];
+      
+      console.log(`  Base match query: IdCRM=${idCRM}, Date range: ${startDateString} to ${endDateString}`);
 
       // apply text search
       const search = req.query.search;
       if (search && typeof search === 'string' && search.trim() !== '') {
         const regex = new RegExp(search.trim(), 'i');
-        match.$or = [
-          { idTiquer: regex },
-          { idCommande: regex },
-          { Signature: regex },
-          { customerName: regex }
-        ];
+        andConditions.push({
+          $or: [
+            { idTiquer: regex },
+            { idCommande: regex },
+            { Signature: regex },
+            { customerName: regex }
+          ]
+        });
         console.log(`  Search filter applied: "${search}"`);
       }
 
@@ -1176,9 +1180,12 @@ const updateStatus = async () => {
       const paymentMethod = req.query.paymentMethod;
       if (paymentMethod && typeof paymentMethod === 'string') {
         const pmRegex = new RegExp(paymentMethod, 'i');
-        match.$or = match.$or || [];
-        match.$or.push({ 'PaymentMethods.payment_method': pmRegex });
-        match.$or.push({ ModePaiement: pmRegex });
+        andConditions.push({
+          $or: [
+            { 'PaymentMethods.payment_method': pmRegex },
+            { ModePaiement: pmRegex }
+          ]
+        });
         console.log(`  Payment method filter: "${paymentMethod}"`);
       }
 
@@ -1188,37 +1195,32 @@ const updateStatus = async () => {
         console.log(`  Fulfillment mode filter requested: "${fulfillmentMode}"`);
         const normalizedTarget = normalizeConsumptionMode(fulfillmentMode);
         if (normalizedTarget) {
+          const consumptionOrConditions = [];
           // Create pattern to match all variations of this mode
           if (normalizedTarget === 'À Emporter') {
-            match.$or = match.$or || [];
-            match.$or.push({ ConsumptionMode: /A\s*Emporter/i });
-            match.$or.push({ ConsumptionMode: /À\s*Emporter/i });
-            match.$or.push({ ConsumptionMode: /Takeaway/i });
+            consumptionOrConditions.push({ ConsumptionMode: /A\s*Emporter/i });
+            consumptionOrConditions.push({ ConsumptionMode: /À\s*Emporter/i });
+            consumptionOrConditions.push({ ConsumptionMode: /Takeaway/i });
             console.log(`    → Normalized to: "À Emporter", added regex filters`);
           } else if (normalizedTarget === 'Sur Place') {
-            match.$or = match.$or || [];
-            match.$or.push({ ConsumptionMode: /Sur\s*Place/i });
-            match.$or.push({ ConsumptionMode: /On-Site/i });
-            match.$or.push({ ConsumptionMode: /On Site/i });
+            consumptionOrConditions.push({ ConsumptionMode: /Sur\s*Place/i });
+            consumptionOrConditions.push({ ConsumptionMode: /On-Site/i });
+            consumptionOrConditions.push({ ConsumptionMode: /On Site/i });
             console.log(`    → Normalized to: "Sur Place", added regex filters`);
           } else if (normalizedTarget === 'Livraison') {
-            match.$or = match.$or || [];
-            match.$or.push({ ConsumptionMode: /Livraison/i });
-            match.$or.push({ ConsumptionMode: /Delivery/i });
+            consumptionOrConditions.push({ ConsumptionMode: /Livraison/i });
+            consumptionOrConditions.push({ ConsumptionMode: /Delivery/i });
             console.log(`    → Normalized to: "Livraison", added regex filters`);
+          }
+          if (consumptionOrConditions.length > 0) {
+            andConditions.push({ $or: consumptionOrConditions });
           }
         }
       }
 
-      // filter by closure number (shift) - check both closureNumber and Z fields
-      const closureNumber = req.query.closureNumber;
-      if (closureNumber && typeof closureNumber === 'string') {
-        const shiftValue = String(closureNumber).trim();
-        // Create an $or condition to match either field
-        match.$or = match.$or || [];
-        match.$or.push({ closureNumber: shiftValue });
-        match.$or.push({ Z: isNaN(shiftValue) ? shiftValue : parseInt(shiftValue) });
-        console.log(`  Closure number (shift) filter: "${shiftValue}" (matching both closureNumber and Z fields)`);
+      // Build final match query with all AND conditions
+      if (andConditions.length > 0) {
+        match.$and = [{ IdCRM: idCRM, Date: { $gte: startDateString, $lte: endDateString } }, ...andConditions];
       }
 
       console.log(`  Final match query: ${JSON.stringify(match)}`);
@@ -2514,4 +2516,482 @@ res.send(htmlContent.replace(/undefined/g, ''));
     }
   };
 
-  module.exports = {updateLivestatForGetReglement,GetBaseName,sendPdfInEmail,updateStatus,sendWelcomeEmail ,generateTicketsHTML2,generateTicketsHTML,getTicketRestoById,getTiquerId,UpdateTiquer, getLivestatByIdandDate2,getAllCatInUploid,updateAllCatCripteInMongo, updateAllCatInUploid, UpdateLicence,UpdateBaseDeDonne,updateLivestat3,updateLivestat4, getLivestatByIdandDate, updateStatusStores, GetLicence, getPaymentStatistics };
+  /**
+   * GET /get-tickets-by-z/:idCRM/:zId
+   * Returns all tickets between the requested Z and the previous Z
+   *
+   * URL parameters:
+   *   idCRM (string)           REQUIRED - Store identifier
+   *   zId (number)             REQUIRED - Z ID (IDCloture)
+   *
+   * Query parameters:
+   *   search (string)          optional keyword matching idTiquer, Signature, customerName etc.
+   *   paymentMethod (string)   optional filter against PaymentMethods/ModePaiement
+   *   fulfillmentMode (string) optional filter against ConsumptionMode
+   *   page (number)            optional, default 1
+   *   limit (number)           optional, default 50
+   *
+   * Response JSON:
+   * {
+   *   data: [<ticket>, ...],
+   *   totalCount: <number>,
+   *   page: <number>,
+   *   limit: <number>,
+   *   zInfo: {
+   *     currentZ: <z_object>,
+   *     previousZ: <z_object>,
+   *     dateRange: { start: <datetime>, end: <datetime> }
+   *   }
+   * }
+   */
+  const getTicketsByZ = async (req, res) => {
+    const callId = Math.random().toString(36).substr(2, 9);
+    console.log(`\n${'='.repeat(80)}`);
+    console.log(`📍 [${callId}] 🟢 getTicketsByZ ENDPOINT HIT`);
+    console.log(`📦 Params: idCRM=${req.params.idCRM}, zId=${req.params.zId}`);
+    console.log(`📦 Query: ${JSON.stringify(req.query)}`);
+
+    try {
+      const idCRM = req.params.idCRM;
+      const zId = parseInt(req.params.zId);
+      const page = Math.max(parseInt(req.query.page) || 1, 1);
+      const limit = Math.max(parseInt(req.query.limit) || 50, 1);
+
+      if (!idCRM || isNaN(zId)) {
+        console.log(`❌ [${callId}] Validation failed - missing idCRM or invalid zId`);
+        return res.status(400).json({ error: 'idCRM and valid zId are required' });
+      }
+
+      const db = await connectToDatabase();
+      const clotureCollection = db.collection('Cloture');
+      const tiquerCollection = db.collection('Tiquer');
+
+      // Find the requested Z
+      console.log(`\n🔍 [${callId}] Finding Z with IDCloture=${zId} for IdCRM=${idCRM}`);
+      const currentZ = await clotureCollection.findOne({
+        IDCloture: zId,
+        IdCRM: idCRM
+      });
+
+      if (!currentZ) {
+        console.log(`❌ [${callId}] Z not found`);
+        return res.status(404).json({ error: 'Z not found' });
+      }
+
+      console.log(`✅ [${callId}] Current Z found:`, {
+        IDCloture: currentZ.IDCloture,
+        Date_cloture: currentZ.Date_cloture,
+        HeureCloture: currentZ.HeureCloture
+      });
+
+      // Find the previous Z (ordered by Date_cloture DESC, HeureCloture DESC)
+      console.log(`\n🔍 [${callId}] Finding previous Z for IdCRM=${idCRM}`);
+      const previousZ = await clotureCollection.findOne({
+        IdCRM: idCRM,
+        $or: [
+          { Date_cloture: { $lt: currentZ.Date_cloture } },
+          {
+            Date_cloture: currentZ.Date_cloture,
+            HeureCloture: { $lt: currentZ.HeureCloture }
+          }
+        ]
+      }, {
+        sort: { Date_cloture: -1, HeureCloture: -1 }
+      });
+
+      console.log(`✅ [${callId}] Previous Z:`, previousZ ? {
+        IDCloture: previousZ.IDCloture,
+        Date_cloture: previousZ.Date_cloture,
+        HeureCloture: previousZ.HeureCloture
+      } : 'None (first Z)');
+
+      // Create date range for ticket filtering
+      let startDateTime, endDateTime;
+
+      if (previousZ) {
+        // Tickets from previous Z timestamp to current Z timestamp
+        startDateTime = new Date(`${previousZ.Date_cloture.toISOString().split('T')[0]}T${previousZ.HeureCloture}`);
+        endDateTime = new Date(`${currentZ.Date_cloture.toISOString().split('T')[0]}T${currentZ.HeureCloture}`);
+      } else {
+        // First Z - tickets from beginning of current Z date to Z timestamp
+        const zDate = currentZ.Date_cloture.toISOString().split('T')[0];
+        startDateTime = new Date(`${zDate}T00:00:00`);
+        endDateTime = new Date(`${zDate}T${currentZ.HeureCloture}`);
+      }
+
+      console.log(`📅 [${callId}] Ticket date range: ${startDateTime.toISOString()} to ${endDateTime.toISOString()}`);
+
+      // Build ticket query
+      const skip = (page - 1) * limit;
+      const match = {
+        IdCRM: idCRM,
+        Date: {
+          $gte: startDateTime.toISOString().split('T')[0].replace(/-/g, ''), // Convert to YYYYMMDD format
+          $lte: endDateTime.toISOString().split('T')[0].replace(/-/g, '')    // Convert to YYYYMMDD format
+        }
+      };
+
+      // Add time filtering (more precise than just date)
+      // Note: Since MongoDB Date fields might not include time, we'll use date range primarily
+      // and rely on the Z timestamps for logical separation
+
+      console.log(`  Base match query: ${JSON.stringify(match)}`);
+
+      // Apply additional filters (search, payment method, fulfillment mode)
+      const search = req.query.search;
+      if (search && typeof search === 'string' && search.trim() !== '') {
+        const regex = new RegExp(search.trim(), 'i');
+        match.$or = [
+          { idTiquer: regex },
+          { idCommande: regex },
+          { Signature: regex },
+          { customerName: regex }
+        ];
+        console.log(`  Search filter applied: "${search}"`);
+      }
+
+      // Filter by payment method
+      const paymentMethod = req.query.paymentMethod;
+      if (paymentMethod && typeof paymentMethod === 'string') {
+        const pmRegex = new RegExp(paymentMethod, 'i');
+        match.$or = match.$or || [];
+        match.$or.push({ 'PaymentMethods.payment_method': pmRegex });
+        match.$or.push({ ModePaiement: pmRegex });
+        console.log(`  Payment method filter: "${paymentMethod}"`);
+      }
+
+      // Filter by fulfillment mode
+      const fulfillmentMode = req.query.fulfillmentMode;
+      if (fulfillmentMode && typeof fulfillmentMode === 'string') {
+        console.log(`  Fulfillment mode filter requested: "${fulfillmentMode}"`);
+        const normalizedTarget = normalizeConsumptionMode(fulfillmentMode);
+        if (normalizedTarget) {
+          match.$or = match.$or || [];
+          if (normalizedTarget === 'À Emporter') {
+            match.$or.push({ ConsumptionMode: /A\s*Emporter/i });
+            match.$or.push({ ConsumptionMode: /À\s*Emporter/i });
+            match.$or.push({ ConsumptionMode: /Takeaway/i });
+          } else if (normalizedTarget === 'Sur Place') {
+            match.$or.push({ ConsumptionMode: /Sur\s*Place/i });
+            match.$or.push({ ConsumptionMode: /On-Site/i });
+            match.$or.push({ ConsumptionMode: /On Site/i });
+          } else if (normalizedTarget === 'Livraison') {
+            match.$or.push({ ConsumptionMode: /Livraison/i });
+            match.$or.push({ ConsumptionMode: /Delivery/i });
+          }
+          console.log(`    → Added fulfillment mode filters`);
+        }
+      }
+
+      console.log(`  Final match query: ${JSON.stringify(match)}`);
+
+      // Execute aggregation
+      const pipeline = [
+        { $match: match },
+        {
+          $facet: {
+            results: [{ $skip: skip }, { $limit: limit }],
+            totalCount: [{ $count: 'count' }]
+          }
+        }
+      ];
+
+      console.log(`  Executing aggregation pipeline...`);
+      const aggResult = await tiquerCollection.aggregate(pipeline).toArray();
+      const results = (aggResult[0] && aggResult[0].results) || [];
+      const totalCount = (aggResult[0] && aggResult[0].totalCount[0] && aggResult[0].totalCount[0].count) || 0;
+
+      console.log(`✅ [${callId}] Query completed`);
+      console.log(`  Results count: ${results.length}`);
+      console.log(`  Total count: ${totalCount}`);
+
+      // Prepare Z info for response
+      const zInfo = {
+        currentZ: {
+          IDCloture: currentZ.IDCloture,
+          Date_cloture: currentZ.Date_cloture,
+          HeureCloture: currentZ.HeureCloture,
+          User: currentZ.User,
+          RECETTE: currentZ.RECETTE
+        },
+        previousZ: previousZ ? {
+          IDCloture: previousZ.IDCloture,
+          Date_cloture: previousZ.Date_cloture,
+          HeureCloture: previousZ.HeureCloture,
+          User: previousZ.User,
+          RECETTE: previousZ.RECETTE
+        } : null,
+        dateRange: {
+          start: startDateTime.toISOString(),
+          end: endDateTime.toISOString()
+        }
+      };
+
+      console.log(`\n📤 [${callId}] Sending response: ${totalCount} total records, ${results.length} on page ${page}`);
+      console.log(`${'='.repeat(80)}\n`);
+
+      res.json({
+        data: results,
+        totalCount,
+        page,
+        limit,
+        zInfo
+      });
+
+    } catch (error) {
+      console.error(`\n❌ [${callId}] ERROR in getTicketsByZ:`);
+      console.error(`  Message: ${error.message}`);
+      console.error(`  Stack:`, error.stack);
+      console.log(`${'='.repeat(80)}\n`);
+      res.status(500).json({ error: "Internal Server Error", detail: error.message });
+    }
+  };
+
+  /**
+   * POST /z
+   * Create a new Z (Cloture) record
+   *
+   * Request body:
+   * {
+   *   IDCloture: <number>,
+   *   Date_cloture: <date>,
+   *   RETRAIT: <decimal>,
+   *   ajout: <decimal>,
+   *   HeureCloture: <time>,
+   *   User: <string>,
+   *   RECETTE: <decimal>,
+   *   IdCRM: <string>
+   * }
+   */
+  const createZ = async (req, res) => {
+    try {
+      const db = await connectToDatabase();
+      const clotureCollection = db.collection('Cloture');
+
+      const zData = {
+        IDCloture: req.body.IDCloture,
+        Date_cloture: new Date(req.body.Date_cloture),
+        RETRAIT: req.body.RETRAIT || 0,
+        ajout: req.body.ajout || 0,
+        HeureCloture: req.body.HeureCloture,
+        User: req.body.User,
+        RECETTE: req.body.RECETTE || 0,
+        IdCRM: req.body.IdCRM
+      };
+
+      // Check if Z already exists
+      const existingZ = await clotureCollection.findOne({
+        IDCloture: zData.IDCloture,
+        IdCRM: zData.IdCRM
+      });
+
+      if (existingZ) {
+        return res.status(409).json({ error: 'Z with this IDCloture already exists for this store' });
+      }
+
+      const result = await clotureCollection.insertOne(zData);
+
+      // Emit socket event for real-time updates
+      if (req.app.io) {
+        req.app.io.emit(`UpdateZ${zData.IdCRM}`, {
+          type: 'Z_CREATED',
+          zData: zData
+        });
+      }
+
+      res.status(201).json({
+        message: 'Z created successfully',
+        data: { ...zData, _id: result.insertedId }
+      });
+
+    } catch (error) {
+      console.error('Error creating Z:', error);
+      res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+    }
+  };
+
+  /**
+   * GET /z/:idCRM
+   * Get all Z records for a store
+   */
+  const getZByIdCRM = async (req, res) => {
+    try {
+      const db = await connectToDatabase();
+      const clotureCollection = db.collection('Cloture');
+
+      const zRecords = await clotureCollection
+        .find({ IdCRM: req.params.idCRM })
+        .sort({ Date_cloture: -1, HeureCloture: -1 })
+        .toArray();
+
+      res.json({
+        data: zRecords,
+        count: zRecords.length
+      });
+
+    } catch (error) {
+      console.error('Error fetching Z records:', error);
+      res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+    }
+  };
+
+  /**
+   * PUT /z/:idCRM/:zId
+   * Update a Z record
+   */
+  const updateZ = async (req, res) => {
+    try {
+      const db = await connectToDatabase();
+      const clotureCollection = db.collection('Cloture');
+
+      const updateData = {};
+      if (req.body.RETRAIT !== undefined) updateData.RETRAIT = req.body.RETRAIT;
+      if (req.body.ajout !== undefined) updateData.ajout = req.body.ajout;
+      if (req.body.RECETTE !== undefined) updateData.RECETTE = req.body.RECETTE;
+      if (req.body.User !== undefined) updateData.User = req.body.User;
+
+      const result = await clotureCollection.updateOne(
+        { IDCloture: parseInt(req.params.zId), IdCRM: req.params.idCRM },
+        { $set: updateData }
+      );
+
+      if (result.matchedCount === 0) {
+        return res.status(404).json({ error: 'Z not found' });
+      }
+
+      // Emit socket event for real-time updates
+      if (req.app.io) {
+        req.app.io.emit(`UpdateZ${req.params.idCRM}`, {
+          type: 'Z_UPDATED',
+          zId: req.params.zId,
+          updateData: updateData
+        });
+      }
+
+      res.json({ message: 'Z updated successfully' });
+
+    } catch (error) {
+      console.error('Error updating Z:', error);
+      res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+    }
+  };
+
+  /**
+   * DELETE /z/:idCRM/:zId
+   * Delete a Z record
+   */
+  const deleteZ = async (req, res) => {
+    try {
+      const db = await connectToDatabase();
+      const clotureCollection = db.collection('Cloture');
+
+      const result = await clotureCollection.deleteOne({
+        IDCloture: parseInt(req.params.zId),
+        IdCRM: req.params.idCRM
+      });
+
+      if (result.deletedCount === 0) {
+        return res.status(404).json({ error: 'Z not found' });
+      }
+
+      // Emit socket event for real-time updates
+      if (req.app.io) {
+        req.app.io.emit(`UpdateZ${req.params.idCRM}`, {
+          type: 'Z_DELETED',
+          zId: req.params.zId
+        });
+      }
+
+      res.json({ message: 'Z deleted successfully' });
+
+    } catch (error) {
+      console.error('Error deleting Z:', error);
+      res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+    }
+  };
+
+  // Get all closures (Z records) for a store
+  const getClosuresByIdCRM = async (req, res) => {
+    const callId = Math.random().toString(36).substr(2, 9);
+    console.log(`\n${'='.repeat(80)}`);
+    console.log(`📍 [${callId}] 🟢 getClosuresByIdCRM ENDPOINT HIT`);
+    
+    try {
+      const idCRM = req.params.idCRM;
+      const page = Math.max(parseInt(req.query.page) || 1, 1);
+      const limit = Math.max(parseInt(req.query.limit) || 50, 1);
+      const date1 = req.query.date1;
+      const date2 = req.query.date2;
+
+      if (!idCRM) {
+        console.log(`❌ [${callId}] Validation failed - missing idCRM`);
+        return res.status(400).json({ error: 'idCRM is required' });
+      }
+
+      const db = await connectToDatabase();
+      const clotureCollection = db.collection('Cloture');
+
+      console.log(`📦 [${callId}] Fetching closures for IdCRM=${idCRM}, page=${page}, limit=${limit}`);
+      if (date1 || date2) {
+        console.log(`   Date filter: ${date1} to ${date2}`);
+      }
+
+      // Build match query
+      const match = { IdCRM: idCRM };
+      
+      // Add date range filter if provided
+      if (date1 || date2) {
+        match.Date_cloture = {};
+        if (date1) {
+          // Parse YYYYMMDD format to Date
+          const year = parseInt(date1.substring(0, 4));
+          const month = parseInt(date1.substring(4, 6)) - 1;
+          const day = parseInt(date1.substring(6, 8));
+          match.Date_cloture.$gte = new Date(year, month, day);
+          console.log(`   Date GTE: ${match.Date_cloture.$gte.toISOString()}`);
+        }
+        if (date2) {
+          // Parse YYYYMMDD format to Date (end of day)
+          const year = parseInt(date2.substring(0, 4));
+          const month = parseInt(date2.substring(4, 6)) - 1;
+          const day = parseInt(date2.substring(6, 8));
+          const endDate = new Date(year, month, day + 1); // Next day, so it includes all of the specified day
+          match.Date_cloture.$lte = endDate;
+          console.log(`   Date LTE: ${match.Date_cloture.$lte.toISOString()}`);
+        }
+      }
+
+      // Build the aggregation pipeline
+      const pipeline = [
+        { $match: match },
+        { $sort: { Date_cloture: -1, HeureCloture: -1 } },
+        {
+          $facet: {
+            results: [{ $skip: (page - 1) * limit }, { $limit: limit }],
+            totalCount: [{ $count: 'count' }]
+          }
+        }
+      ];
+
+      const aggResult = await clotureCollection.aggregate(pipeline).toArray();
+      const results = (aggResult[0] && aggResult[0].results) || [];
+      const totalCount = (aggResult[0] && aggResult[0].totalCount[0] && aggResult[0].totalCount[0].count) || 0;
+
+      console.log(`✅ [${callId}] Found ${totalCount} closures (${results.length} on page ${page})`);
+
+      res.json({
+        success: true,
+        data: results,
+        totalCount,
+        page,
+        limit,
+        totalPages: Math.ceil(totalCount / limit)
+      });
+
+    } catch (error) {
+      console.error('Error fetching closures:', error);
+      res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+    }
+  };
+
+  module.exports = {updateLivestatForGetReglement,GetBaseName,sendPdfInEmail,updateStatus,sendWelcomeEmail ,generateTicketsHTML2,generateTicketsHTML,getTicketRestoById,getTiquerId,UpdateTiquer, getLivestatByIdandDate2,getAllCatInUploid,updateAllCatCripteInMongo, updateAllCatInUploid, UpdateLicence,UpdateBaseDeDonne,updateLivestat3,updateLivestat4, getLivestatByIdandDate, updateStatusStores, GetLicence, getPaymentStatistics, getTicketsByZ, getClosuresByIdCRM, createZ, getZByIdCRM, updateZ, deleteZ };
