@@ -8,47 +8,75 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #333;
+            background: #121212;
+            color: #e0e0e0;
             padding: 20px;
             min-height: 100vh;
+            line-height: 1.6;
+            scroll-behavior: smooth;
         }
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            background: #1e1e1e;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
             overflow: hidden;
         }
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            background: #2d2d2d;
+            color: #fff;
             padding: 40px;
             text-align: center;
         }
         .header h1 { font-size: 2.5em; margin-bottom: 10px; }
         .header p { font-size: 1.1em; opacity: 0.9; }
+        .index {
+            padding: 20px 40px;
+            background: #252525;
+            border-bottom: 1px solid #444;
+        }
+        .index h2 {
+            color: #007acc;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+        .index table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .index th, .index td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #444;
+        }
+        .index a {
+            color: #007acc;
+            text-decoration: none;
+        }
+        .index a:hover {
+            text-decoration: underline;
+        }
         .content { padding: 40px; }
         .section {
             margin-bottom: 40px;
-            border-left: 4px solid #667eea;
+            border-left: 4px solid #007acc;
             padding-left: 20px;
         }
         .section h2 {
-            color: #667eea;
+            color: #007acc;
             margin-bottom: 20px;
             font-size: 1.8em;
         }
         .section h3 {
-            color: #764ba2;
+            color: #fff;
             margin-top: 20px;
             margin-bottom: 10px;
             font-size: 1.3em;
         }
         .endpoint {
-            background: #f5f5f5;
-            border: 1px solid #ddd;
+            background: #2a2a2a;
+            border: 1px solid #444;
             border-radius: 5px;
             padding: 15px;
             margin-bottom: 15px;
@@ -62,28 +90,29 @@
             color: white;
             font-size: 0.9em;
         }
-        .post { background: #FF6B6B; }
-        .get { background: #4ECDC4; }
-        .put { background: #FFD93D; color: #333; }
-        .delete { background: #FF6B6B; }
+        .post { background: #d32f2f; }
+        .get { background: #388e3c; }
+        .put { background: #f57c00; }
+        .delete { background: #d32f2f; }
         .path {
             font-family: 'Courier New', monospace;
-            background: #f0f0f0;
+            background: #333;
+            color: #e0e0e0;
             padding: 8px 12px;
             border-radius: 4px;
             display: inline-block;
             margin: 10px 0;
         }
         .params, .response {
-            background: #fafafa;
-            border: 1px solid #e0e0e0;
+            background: #252525;
+            border: 1px solid #444;
             border-radius: 4px;
             padding: 12px;
             margin: 10px 0;
             font-size: 0.95em;
         }
         .params h4, .response h4 {
-            color: #667eea;
+            color: #007acc;
             margin-bottom: 8px;
             font-size: 1em;
         }
@@ -92,21 +121,22 @@
             margin-bottom: 8px;
         }
         code {
-            background: #f0f0f0;
+            background: #333;
+            color: #e0e0e0;
             padding: 2px 6px;
             border-radius: 3px;
             font-family: 'Courier New', monospace;
         }
         .category {
-            background: #f9f9f9;
+            background: #252525;
             border-radius: 5px;
             padding: 15px;
             margin: 20px 0;
-            border-left: 5px solid #667eea;
+            border-left: 5px solid #007acc;
         }
         .note {
-            background: #e3f2fd;
-            border-left: 4px solid #2196F3;
+            background: #252525;
+            border-left: 4px solid #007acc;
             padding: 15px;
             margin: 15px 0;
             border-radius: 4px;
@@ -117,20 +147,20 @@
             margin: 15px 0;
         }
         th, td {
-            border: 1px solid #ddd;
+            border: 1px solid #444;
             padding: 12px;
             text-align: left;
         }
         th {
-            background: #667eea;
-            color: white;
+            background: #2d2d2d;
+            color: #e0e0e0;
         }
         tr:nth-child(even) {
-            background: #f9f9f9;
+            background: #252525;
         }
         .new-badge {
             display: inline-block;
-            background: #4CAF50;
+            background: #4caf50;
             color: white;
             padding: 2px 8px;
             border-radius: 3px;
@@ -140,7 +170,7 @@
         }
         .fixed-badge {
             display: inline-block;
-            background: #2196F3;
+            background: #2196f3;
             color: white;
             padding: 2px 8px;
             border-radius: 3px;
@@ -158,10 +188,29 @@
             <p style="font-size: 0.9em; margin-top: 15px;">Last Updated: March 30, 2026</p>
         </div>
 
+        <div class="index">
+            <h2>📚 Index</h2>
+            <table>
+                <tr><th>Section</th><th>Description</th></tr>
+                <tr><td><a href="#overview">Overview</a></td><td>API introduction and base information</td></tr>
+                <tr><td><a href="#sales">Sales Statistics Endpoints</a></td><td>Financial data and summaries</td></tr>
+                <tr><td><a href="#tickets">Tickets & Orders Endpoints</a></td><td>Ticket retrieval and filtering</td></tr>
+                <tr><td><a href="#cloture">Z (Cloture) Management Endpoints</a></td><td>Closure period management</td></tr>
+                <tr><td><a href="#store">Store Management Endpoints</a></td><td>Store-related operations</td></tr>
+                <tr><td><a href="#payment">Payment Analytics</a></td><td>Payment method analysis</td></tr>
+                <tr><td><a href="#email">Email Services</a></td><td>Email notifications</td></tr>
+                <tr><td><a href="#categories">Categories & Images</a></td><td>Category management</td></tr>
+                <tr><td><a href="#filters">Common Filters & Parameters</a></td><td>Filtering options</td></tr>
+                <tr><td><a href="#examples">Usage Examples</a></td><td>API usage samples</td></tr>
+                <tr><td><a href="#updates">Latest Updates</a></td><td>Recent changes</td></tr>
+                <tr><td><a href="#support">Support & Questions</a></td><td>Help and contact</td></tr>
+            </table>
+        </div>
+
         <div class="content">
             <!-- Overview -->
             <div class="section">
-                <h2>📋 Overview</h2>
+                <h2 id="overview">📋 Overview</h2>
                 <p>The Makseb Statistique API provides comprehensive endpoints for managing restaurant sales data, ticket records, payment information, and cash register closures (Z records). The API supports real-time updates via Socket.IO and includes advanced filtering and pagination capabilities.</p>
                 
                 <div class="note">
@@ -223,7 +272,7 @@
 
             <!-- Sales Statistics -->
             <div class="section">
-                <h2>💰 Sales Statistics Endpoints</h2>
+                <h2 id="sales">💰 Sales Statistics Endpoints</h2>
 
                 <div class="endpoint">
                     <span class="method post">POST</span>
@@ -298,7 +347,7 @@
 
             <!-- Tickets/Orders -->
             <div class="section">
-                <h2>🎫 Tickets & Orders Endpoints</h2>
+                <h2 id="tickets">🎫 Tickets & Orders Endpoints</h2>
 
                 <div class="endpoint">
                     <span class="method get">GET</span>
@@ -399,7 +448,7 @@
 
             <!-- Z/Closures Management -->
             <div class="section">
-                <h2>🔐 Z (Cloture) Management Endpoints <span class="new-badge">NEW</span></h2>
+                <h2 id="cloture">🔐 Z (Cloture) Management Endpoints <span class="new-badge">NEW</span></h2>
                 <p>Cash register closure (Z record) management for shift tracking and financial reconciliation.</p>
 
                 <div class="endpoint">
@@ -501,7 +550,7 @@
 
             <!-- Store Management -->
             <div class="section">
-                <h2>🏪 Store Management Endpoints</h2>
+                <h2 id="store">🏪 Store Management Endpoints</h2>
 
                 <div class="endpoint">
                     <span class="method post">POST</span>
@@ -536,7 +585,7 @@
 
             <!-- Payment Statistics -->
             <div class="section">
-                <h2>💳 Payment Analytics</h2>
+                <h2 id="payment">💳 Payment Analytics</h2>
 
                 <div class="endpoint">
                     <span class="method get">GET</span>
@@ -547,7 +596,7 @@
 
             <!-- Email Services -->
             <div class="section">
-                <h2>📧 Email Services</h2>
+                <h2 id="email">📧 Email Services</h2>
 
                 <div class="endpoint">
                     <span class="method post">POST</span>
@@ -564,7 +613,7 @@
 
             <!-- Categories -->
             <div class="section">
-                <h2>📁 Categories & Images</h2>
+                <h2 id="categories">📁 Categories & Images</h2>
 
                 <div class="endpoint">
                     <span class="method post">POST</span>
@@ -587,7 +636,7 @@
 
             <!-- Common Filters -->
             <div class="section">
-                <h2>🔍 Common Filters & Parameters</h2>
+                <h2 id="filters">🔍 Common Filters & Parameters</h2>
 
                 <h3>Payment Methods</h3>
                 <p>Use these values for <code>paymentMethod</code> parameter:</p>
@@ -628,7 +677,7 @@
 
             <!-- Examples -->
             <div class="section">
-                <h2>📝 Usage Examples</h2>
+                <h2 id="examples">📝 Usage Examples</h2>
 
                 <h3>Example 1: Get Sales Summary</h3>
                 <div class="path">GET /get-sales-summary?idCRM=9999&date1=20260301&date2=20260330</div>
@@ -661,7 +710,7 @@
 
             <!-- Changelog -->
             <div class="section">
-                <h2>📢 Latest Updates</h2>
+                <h2 id="updates">📢 Latest Updates</h2>
                 
                 <div class="category">
                     <h3>March 30, 2026 - Z Management & Filter Improvements</h3>
@@ -679,7 +728,7 @@
 
             <!-- Support -->
             <div class="section">
-                <h2>❓ Support & Questions</h2>
+                <h2 id="support">❓ Support & Questions</h2>
                 <p>For issues or questions about the API:</p>
                 <ul style="margin-left: 20px;">
                     <li>Check the backend console logs for detailed operation logs</li>
