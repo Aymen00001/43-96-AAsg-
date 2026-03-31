@@ -35,6 +35,11 @@ function generateTestTicket(index, idCRM, date, time) {
   const paymentMethod = PAYMENT_METHODS[index % PAYMENT_METHODS.length];
   const consumptionMode = CONSUMPTION_MODES[index % CONSUMPTION_MODES.length];
   
+  // Add some cancelled and refunded tickets for testing
+  let status = 'Encaiser';
+  if (index % 20 === 0) status = 'Annuler';  // Every 20th ticket is cancelled
+  if (index % 25 === 0) status = 'Rembourser';  // Every 25th ticket is refunded
+  
   // Generate 1-3 items per ticket
   const itemCount = 1 + Math.floor(Math.random() * 3);
   const items = [];
@@ -90,7 +95,7 @@ function generateTestTicket(index, idCRM, date, time) {
       Total_TTC: totalTTC
     },
     
-    status: 'Encaiser',
+    status: status,
     createdAt: new Date(),
     updatedAt: new Date()
   };

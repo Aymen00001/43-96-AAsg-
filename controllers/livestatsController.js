@@ -563,7 +563,9 @@ const UpdateTiquer = async (req, res) => {
           modeConsommation: {},
           ProduitDetailler: {},
           EtatTiquer: {
-            Encaiser: tiquerData.length
+            Encaiser: 0,
+            Annuler: 0,
+            Rembourser: 0
           },
           devise: '€'
         };
@@ -575,47 +577,69 @@ const UpdateTiquer = async (req, res) => {
           console.log(`\n  Ticket ${idx + 1}/${tiquerData.length}:`);
           console.log(`    ├─ idTiquer: ${ticket.idTiquer}, Date: ${ticket.Date}, Time: ${ticket.HeureTicket}`);
           console.log(`    ├─ TTC: ${ticket.TTC}, HT: ${ticket.Totals?.Total_Ht}, TVA: ${ticket.Totals?.Total_TVA}`);
+          console.log(`    ├─ Status: ${ticket.status}`);
           
-          // Sum revenue
-          aggregated.ChiffreAffaire.Total_TTC += parseFloat(ticket.TTC || 0);
-          aggregated.ChiffreAffaire.Total_HT += parseFloat(ticket.Totals?.Total_Ht || 0);
-          aggregated.ChiffreAffaire.Total_TVA += parseFloat(ticket.Totals?.Total_TVA || 0);
-          console.log(`    └─ Running totals - TTC: ${aggregated.ChiffreAffaire.Total_TTC}, HT: ${aggregated.ChiffreAffaire.Total_HT}, TVA: ${aggregated.ChiffreAffaire.Total_TVA}`);
-
-          // Process payment methods
-          if (ticket.PaymentMethods && Array.isArray(ticket.PaymentMethods)) {
-            console.log(`    Payment methods: ${ticket.PaymentMethods.length} found`);
-            ticket.PaymentMethods.forEach((pm, pmIdx) => {
-              const method = normalizePaymentMethod(pm.payment_method);
-              const amount = pm.amount || 0;
-              aggregated.modePaiement[method] = (aggregated.modePaiement[method] || 0) + amount;
-              console.log(`      [${pmIdx}] ${pm.payment_method} → ${method}: ${amount} (total for method: ${aggregated.modePaiement[method]})`);
-            });
+          // Count by ticket status
+          const status = ticket.status || 'Encaiser'; // Default to Encaiser if no status
+          console.log(`    ├─ Status counting: "${status}"`);
+          if (status === 'Encaiser' || status === 'Collected' || status === 'Paid') {
+            aggregated.EtatTiquer.Encaiser++;
+            console.log(`      → Counted as Encaiser (total: ${aggregated.EtatTiquer.Encaiser})`);
+          } else if (status === 'Annuler' || status === 'Cancelled' || status === 'Cancel') {
+            aggregated.EtatTiquer.Annuler++;
+            console.log(`      → Counted as Annuler (total: ${aggregated.EtatTiquer.Annuler})`);
+          } else if (status === 'Rembourser' || status === 'Refunded' || status === 'Refund') {
+            aggregated.EtatTiquer.Rembourser++;
+            console.log(`      → Counted as Rembourser (total: ${aggregated.EtatTiquer.Rembourser})`);
+          } else {
+            // Unknown status, count as collected
+            aggregated.EtatTiquer.Encaiser++;
+            console.log(`    ⚠️  Unknown status "${status}", counted as Encaiser`);
           }
+          
+          // Only include revenue and details from collected tickets
+          if (status === 'Encaiser' || status === 'Collected' || status === 'Paid') {
+            // Sum revenue
+            aggregated.ChiffreAffaire.Total_TTC += parseFloat(ticket.TTC || 0);
+            aggregated.ChiffreAffaire.Total_HT += parseFloat(ticket.Totals?.Total_Ht || 0);
+            aggregated.ChiffreAffaire.Total_TVA += parseFloat(ticket.Totals?.Total_TVA || 0);
+            console.log(`    └─ Running totals - TTC: ${aggregated.ChiffreAffaire.Total_TTC}, HT: ${aggregated.ChiffreAffaire.Total_HT}, TVA: ${aggregated.ChiffreAffaire.Total_TVA}`);
 
-          // Process consumption mode (fulfillment)
-          const rawConsumptionMode = ticket.ConsumptionMode || 'UNKNOWN';
-          const consumptionMode = normalizeConsumptionMode(rawConsumptionMode);
-          aggregated.modeConsommation[consumptionMode] = (aggregated.modeConsommation[consumptionMode] || 0) + (ticket.TTC || 0);
-          console.log(`    Fulfillment - ${rawConsumptionMode} → ${consumptionMode}: ${ticket.TTC} (total: ${aggregated.modeConsommation[consumptionMode]})`);
+            // Process payment methods
+            if (ticket.PaymentMethods && Array.isArray(ticket.PaymentMethods)) {
+              console.log(`    Payment methods: ${ticket.PaymentMethods.length} found`);
+              ticket.PaymentMethods.forEach((pm, pmIdx) => {
+                const method = normalizePaymentMethod(pm.payment_method);
+                const amount = pm.amount || 0;
+                aggregated.modePaiement[method] = (aggregated.modePaiement[method] || 0) + amount;
+                console.log(`      [${pmIdx}] ${pm.payment_method} → ${method}: ${amount} (total for method: ${aggregated.modePaiement[method]})`);
+              });
+            }
 
-          // Process products from Menu
-          if (ticket.Menu && Array.isArray(ticket.Menu)) {
-            console.log(`    Products: ${ticket.Menu.length} found`);
-            ticket.Menu.forEach((menuItem, mIdx) => {
-              const productName = menuItem.NameProduct || 'Unknown Product';
-              const qty = menuItem.QtyProduct || 1;
-              const ttc = parseFloat(menuItem.TTC || 0);
-              if (!aggregated.ProduitDetailler[productName]) {
-                aggregated.ProduitDetailler[productName] = {
-                  TotalTTC: 0,
-                  Quantite: 0
-                };
-              }
-              aggregated.ProduitDetailler[productName].TotalTTC += ttc;
-              aggregated.ProduitDetailler[productName].Quantite += qty;
-              console.log(`      [${mIdx}] ${productName} - Qty: ${qty}, TTC: ${ttc}`);
-            });
+            // Process consumption mode (fulfillment)
+            const rawConsumptionMode = ticket.ConsumptionMode || 'UNKNOWN';
+            const consumptionMode = normalizeConsumptionMode(rawConsumptionMode);
+            aggregated.modeConsommation[consumptionMode] = (aggregated.modeConsommation[consumptionMode] || 0) + (ticket.TTC || 0);
+            console.log(`    Fulfillment - ${rawConsumptionMode} → ${consumptionMode}: ${ticket.TTC} (total: ${aggregated.modeConsommation[consumptionMode]})`);
+
+            // Process products from Menu
+            if (ticket.Menu && Array.isArray(ticket.Menu)) {
+              console.log(`    Products: ${ticket.Menu.length} found`);
+              ticket.Menu.forEach((menuItem, mIdx) => {
+                const productName = menuItem.NameProduct || 'Unknown Product';
+                const qty = menuItem.QtyProduct || 1;
+                const ttc = parseFloat(menuItem.TTC || 0);
+                if (!aggregated.ProduitDetailler[productName]) {
+                  aggregated.ProduitDetailler[productName] = {
+                    TotalTTC: 0,
+                    Quantite: 0
+                  };
+                }
+                aggregated.ProduitDetailler[productName].TotalTTC += ttc;
+                aggregated.ProduitDetailler[productName].Quantite += qty;
+                console.log(`      [${mIdx}] ${productName} - Qty: ${qty}, TTC: ${ttc}`);
+              });
+            }
           }
         });
 

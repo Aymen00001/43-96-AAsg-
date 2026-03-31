@@ -315,11 +315,20 @@
                     <div class="response">
                         <h4>Response:</h4>
                         <ul class="param-list">
-                            <li><code>success</code> - Boolean</li>
-                            <li><code>totalTTC</code> - Total with tax</li>
-                            <li><code>totalHT</code> - Total without tax</li>
-                            <li><code>paymentMethods</code> - Breakdown by payment type</li>
-                            <li><code>fulfillmentMethods</code> - Breakdown by consumption mode</li>
+                            <li><code>success</code> - Boolean indicating success</li>
+                            <li><code>msg</code> - Response message</li>
+                            <li><code>data</code> - Aggregated sales data object containing:</li>
+                            <li style="margin-left: 20px;"><code>ChiffreAffaire</code> - Revenue breakdown:</li>
+                            <li style="margin-left: 40px;"><code>Total_TTC</code> - Total with tax</li>
+                            <li style="margin-left: 40px;"><code>Total_HT</code> - Total without tax</li>
+                            <li style="margin-left: 40px;"><code>Total_TVA</code> - Total tax amount</li>
+                            <li style="margin-left: 20px;"><code>EtatTiquer</code> - Ticket status counts:</li>
+                            <li style="margin-left: 40px;"><code>Encaiser</code> - Number of collected/paid tickets</li>
+                            <li style="margin-left: 40px;"><code>Annuler</code> - Number of cancelled tickets</li>
+                            <li style="margin-left: 40px;"><code>Rembourser</code> - Number of refunded tickets</li>
+                            <li style="margin-left: 20px;"><code>modePaiement</code> - Payment method breakdown</li>
+                            <li style="margin-left: 20px;"><code>modeConsommation</code> - Consumption mode breakdown</li>
+                            <li style="margin-left: 20px;"><code>ProduitDetailler</code> - Product sales breakdown</li>
                         </ul>
                     </div>
                 </div>
