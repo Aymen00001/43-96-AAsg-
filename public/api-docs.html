@@ -3,2073 +3,694 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Stats API Documentation</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <title>Makseb Statistique API Documentation</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        :root {
-            --primary: #1f2937;
-            --secondary: #111827;
-            --accent: #f97316;
-            --text: #f3f4f6;
-            --text-muted: #d1d5db;
-            --border: #374151;
-            --code-bg: #0f172a;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --error: #ef4444;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: var(--primary);
-            color: var(--text);
-            line-height: 1.6;
-        }
-
-        .container {
-            display: grid;
-            grid-template-columns: 250px 1fr;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            padding: 20px;
             min-height: 100vh;
         }
-
-        /* Sidebar */
-        .sidebar {
-            background: var(--secondary);
-            border-right: 1px solid var(--border);
-            overflow-y: auto;
-            position: sticky;
-            top: 0;
-            height: 100vh;
-            padding: 24px 0;
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            overflow: hidden;
         }
-
-        .sidebar-header {
-            padding: 0 24px 24px;
-            border-bottom: 1px solid var(--border);
-            margin-bottom: 24px;
-        }
-
-        .logo {
-            font-size: 24px;
-            font-weight: bold;
-            color: var(--accent);
-            margin-bottom: 8px;
-        }
-
-        .api-version {
-            font-size: 12px;
-            color: var(--text-muted);
-        }
-
-        .nav-section {
-            margin-bottom: 24px;
-        }
-
-        .nav-section-title {
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-            color: var(--text-muted);
-            padding: 12px 24px;
-            letter-spacing: 0.5px;
-        }
-
-        .nav-link {
-            display: block;
-            padding: 10px 24px;
-            color: var(--text-muted);
-            text-decoration: none;
-            font-size: 14px;
-            border-left: 3px solid transparent;
-            transition: all 0.2s;
-            cursor: pointer;
-        }
-
-        .nav-link:hover {
-            color: var(--accent);
-            background: rgba(249, 115, 22, 0.1);
-            border-left-color: var(--accent);
-        }
-
-        .nav-link.active {
-            color: var(--accent);
-            background: rgba(249, 115, 22, 0.15);
-            border-left-color: var(--accent);
-        }
-
-        /* Main Content */
-        .main {
-            overflow-y: auto;
-            padding: 48px;
-        }
-
         .header {
-            margin-bottom: 48px;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 32px;
-        }
-
-        .header h1 {
-            font-size: 42px;
-            font-weight: 700;
-            margin-bottom: 12px;
-        }
-
-        .header p {
-            font-size: 16px;
-            color: var(--text-muted);
-            max-width: 600px;
-        }
-
-        .section {
-            margin-bottom: 64px;
-            scroll-margin-top: 80px;
-        }
-
-        .section-title {
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 24px;
-            color: var(--text);
-            border-left: 4px solid var(--accent);
-            padding-left: 16px;
-        }
-
-        .endpoint {
-            background: var(--secondary);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 24px;
-            margin-bottom: 24px;
-            transition: border-color 0.2s;
-        }
-
-        .endpoint:hover {
-            border-color: var(--accent);
-        }
-
-        .endpoint-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 16px;
-            flex-wrap: wrap;
-        }
-
-        .method {
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-weight: 600;
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            min-width: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
             text-align: center;
         }
-
-        .method.post {
-            background: rgba(59, 130, 246, 0.2);
-            color: #60a5fa;
+        .header h1 { font-size: 2.5em; margin-bottom: 10px; }
+        .header p { font-size: 1.1em; opacity: 0.9; }
+        .content { padding: 40px; }
+        .section {
+            margin-bottom: 40px;
+            border-left: 4px solid #667eea;
+            padding-left: 20px;
         }
-
-        .method.get {
-            background: rgba(16, 185, 129, 0.2);
-            color: #34d399;
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.8em;
         }
-
-        .method.put {
-            background: rgba(245, 158, 11, 0.2);
-            color: #fbbf24;
+        .section h3 {
+            color: #764ba2;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 1.3em;
         }
-
-        .method.delete {
-            background: rgba(239, 68, 68, 0.2);
-            color: #f87171;
+        .endpoint {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 15px;
         }
-
-        .endpoint-path {
+        .method {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-right: 10px;
+            color: white;
+            font-size: 0.9em;
+        }
+        .post { background: #FF6B6B; }
+        .get { background: #4ECDC4; }
+        .put { background: #FFD93D; color: #333; }
+        .delete { background: #FF6B6B; }
+        .path {
             font-family: 'Courier New', monospace;
-            font-size: 14px;
-            color: var(--accent);
-            flex: 1;
-            word-break: break-all;
+            background: #f0f0f0;
+            padding: 8px 12px;
+            border-radius: 4px;
+            display: inline-block;
+            margin: 10px 0;
         }
-
-        .endpoint-description {
-            font-size: 14px;
-            color: var(--text-muted);
-            margin-bottom: 20px;
-            line-height: 1.6;
-        }
-
-        .params-section {
-            margin-bottom: 20px;
-        }
-
-        .params-title {
-            font-weight: 600;
-            font-size: 13px;
-            text-transform: uppercase;
-            color: var(--text);
-            margin-bottom: 12px;
-            letter-spacing: 0.5px;
-        }
-
-        .params-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-        }
-
-        .params-table thead {
-            background: rgba(0, 0, 0, 0.2);
-        }
-
-        .params-table th {
+        .params, .response {
+            background: #fafafa;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
             padding: 12px;
-            text-align: left;
-            font-weight: 600;
-            color: var(--text-muted);
-            border-bottom: 1px solid var(--border);
+            margin: 10px 0;
+            font-size: 0.95em;
         }
-
-        .params-table td {
-            padding: 12px;
-            border-bottom: 1px solid var(--border);
+        .params h4, .response h4 {
+            color: #667eea;
+            margin-bottom: 8px;
+            font-size: 1em;
         }
-
-        .param-name {
-            font-family: monospace;
-            color: var(--accent);
-            font-weight: 500;
+        .param-list li {
+            margin-left: 20px;
+            margin-bottom: 8px;
         }
-
-        .param-type {
-            background: rgba(249, 115, 22, 0.15);
-            color: #fed7aa;
+        code {
+            background: #f0f0f0;
             padding: 2px 6px;
             border-radius: 3px;
-            font-size: 11px;
-            font-weight: 600;
-        }
-
-        .required {
-            background: rgba(239, 68, 68, 0.2);
-            color: #fca5a5;
-        }
-
-        .optional {
-            background: rgba(148, 163, 184, 0.2);
-            color: #cbd5e1;
-        }
-
-        .code-block {
-            background: var(--code-bg);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 16px;
-            margin-bottom: 16px;
-            overflow-x: auto;
-            font-size: 13px;
-            line-height: 1.5;
-        }
-
-        .code-block pre {
-            margin: 0;
-        }
-
-        .code-block code {
             font-family: 'Courier New', monospace;
-            color: var(--text);
         }
-
-        .hljs {
-            background: transparent !important;
-            color: var(--text) !important;
+        .category {
+            background: #f9f9f9;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+            border-left: 5px solid #667eea;
         }
-
-        .response-box {
-            background: var(--code-bg);
-            border-left: 4px solid var(--success);
+        .note {
+            background: #e3f2fd;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin: 15px 0;
             border-radius: 4px;
-            padding: 16px;
-            margin-top: 12px;
         }
-
-        .response-box.error {
-            border-left-color: var(--error);
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
         }
-
-        .response-label {
-            font-weight: 600;
-            font-size: 12px;
-            text-transform: uppercase;
-            margin-bottom: 8px;
-            color: var(--text-muted);
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 600;
-        }
-
-        .badge.success {
-            background: rgba(16, 185, 129, 0.2);
-            color: #6ee7b7;
-        }
-
-        .badge.error {
-            background: rgba(239, 68, 68, 0.2);
-            color: #fca5a5;
-        }
-
-        .status-codes {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 12px;
-            margin-top: 12px;
-        }
-
-        .status-code {
-            background: rgba(0, 0, 0, 0.2);
-            border: 1px solid var(--border);
+        th, td {
+            border: 1px solid #ddd;
             padding: 12px;
-            border-radius: 6px;
-            font-size: 13px;
+            text-align: left;
         }
-
-        .status-code-number {
-            font-weight: 600;
-            color: var(--accent);
-            margin-bottom: 4px;
-        }
-
-        .status-code-desc {
-            color: var(--text-muted);
-            font-size: 12px;
-        }
-
-        /* Tabs */
-        .tabs {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 16px;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .tab {
-            padding: 12px 16px;
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 500;
-            border-bottom: 2px solid transparent;
-            transition: all 0.2s;
-        }
-
-        .tab:hover {
-            color: var(--text);
-        }
-
-        .tab.active {
-            color: var(--accent);
-            border-bottom-color: var(--accent);
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        /* Responsive */
-        @media (max-width: 1024px) {
-            .container {
-                grid-template-columns: 1fr;
-            }
-
-            .sidebar {
-                position: sticky;
-                top: 0;
-                height: auto;
-                max-height: 60px;
-                border-right: none;
-                border-bottom: 1px solid var(--border);
-                display: flex;
-                overflow-x: auto;
-                padding: 12px 24px;
-            }
-
-            .sidebar-header {
-                padding: 0;
-                border: none;
-                margin: 0;
-            }
-
-            .nav-section {
-                display: flex;
-                gap: 24px;
-                margin: 0;
-            }
-
-            .nav-section-title {
-                display: none;
-            }
-
-            .nav-link {
-                padding: 0;
-                border: none;
-            }
-
-            .main {
-                padding: 32px;
-            }
-
-            .header h1 {
-                font-size: 32px;
-            }
-
-            .section-title {
-                font-size: 22px;
-            }
-        }
-
-        @media (max-width: 640px) {
-            .main {
-                padding: 16px;
-            }
-
-            .header h1 {
-                font-size: 24px;
-            }
-
-            .section-title {
-                font-size: 18px;
-            }
-
-            .endpoint {
-                padding: 16px;
-            }
-
-            .endpoint-header {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .params-table {
-                font-size: 12px;
-            }
-
-            .params-table th,
-            .params-table td {
-                padding: 8px;
-            }
-        }
-
-        /* Copy button */
-        .copy-btn {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            background: var(--accent);
+        th {
+            background: #667eea;
             color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 600;
-            opacity: 0;
-            transition: opacity 0.2s;
         }
-
-        .code-block:hover .copy-btn {
-            opacity: 1;
+        tr:nth-child(even) {
+            background: #f9f9f9;
         }
-
-        .copy-btn:hover {
-            background: #ea580c;
-        }
-
-        .back-to-top {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            width: 48px;
-            height: 48px;
-            background: var(--accent);
+        .new-badge {
+            display: inline-block;
+            background: #4CAF50;
             color: white;
-            border: none;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 20px;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4);
-        }
-
-        .back-to-top:hover {
-            background: #ea580c;
-            transform: translateY(-4px);
-            box-shadow: 0 6px 16px rgba(249, 115, 22, 0.5);
-        }
-
-        .back-to-top.visible {
-            display: flex;
-        }
-
-        .toc {
-            background: var(--secondary);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 32px;
-        }
-
-        .toc-title {
-            font-weight: 600;
-            margin-bottom: 12px;
-            font-size: 14px;
-        }
-
-        .toc-list {
-            list-style: none;
-        }
-
-        .toc-list li {
-            margin-bottom: 8px;
-        }
-
-        .toc-list a {
-            color: var(--text-muted);
-            text-decoration: none;
-            font-size: 13px;
-            transition: color 0.2s;
-        }
-
-        .toc-list a:hover {
-            color: var(--accent);
-        }
-
-        .code-label {
-            font-size: 11px;
-            text-transform: uppercase;
-            color: var(--text-muted);
-            margin-bottom: 8px;
-            display: block;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-        }
-
-        .feature-list {
-            list-style: none;
-            margin-bottom: 20px;
-        }
-
-        .feature-list li {
-            padding: 8px 0;
-            padding-left: 24px;
-            position: relative;
-            color: var(--text-muted);
-            font-size: 14px;
-        }
-
-        .feature-list li:before {
-            content: "✓";
-            position: absolute;
-            left: 0;
-            color: var(--success);
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 0.8em;
             font-weight: bold;
+            margin-left: 10px;
+        }
+        .fixed-badge {
+            display: inline-block;
+            background: #2196F3;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-left: 10px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Sidebar Navigation -->
-        <div class="sidebar">
-            <div class="sidebar-header">
-                <div class="logo">📊 Live Stats</div>
-                <div class="api-version">API v1.0</div>
-            </div>
-
-            <div class="nav-section">
-                <div class="nav-section-title">Getting Started</div>
-                <a class="nav-link active" onclick="scrollToSection('overview')">Overview</a>
-                <a class="nav-link" onclick="scrollToSection('authentication')">Authentication</a>
-                <a class="nav-link" onclick="scrollToSection('responses')">Responses</a>
-            </div>
-
-            <div class="nav-section">
-                <div class="nav-section-title">Endpoints</div>
-                <a class="nav-link" onclick="scrollToSection('sales')">Sales & Transactions</a>
-                <a class="nav-link" onclick="scrollToSection('payment-stats')">Payment Statistics</a>
-                <a class="nav-link" onclick="scrollToSection('email')">Email</a>
-                <a class="nav-link" onclick="scrollToSection('data')">Data Retrieval</a>
-                <a class="nav-link" onclick="scrollToSection('store')">Store Management</a>
-                <a class="nav-link" onclick="scrollToSection('sync')">Category Sync</a>
-                <a class="nav-link" onclick="scrollToSection('tickets')">Ticket Display</a>
-            </div>
-
-            <div class="nav-section">
-                <div class="nav-section-title">Resources</div>
-                <a class="nav-link" onclick="scrollToSection('heartbeat')">Keep-Alive Heartbeat</a>
-                <a class="nav-link" onclick="scrollToSection('errors')">Error Handling</a>
-                <a class="nav-link" onclick="scrollToSection('examples')">Code Examples</a>
-                <a class="nav-link" onclick="scrollToSection('database')">Database</a>
-            </div>
+        <div class="header">
+            <h1>🍽️ Makseb Statistique API</h1>
+            <p>Complete API Reference & Endpoint Documentation</p>
+            <p style="font-size: 0.9em; margin-top: 15px;">Last Updated: March 30, 2026</p>
         </div>
 
-        <!-- Main Content -->
-        <div class="main">
-            <!-- Header -->
-            <div class="header" id="overview">
-                <h1>Live Stats API</h1>
-                <p>Comprehensive REST API for restaurant transaction management, ticket generation, and sales analytics. Build powerful integrations with Makseb's restaurant management platform.</p>
-            </div>
-
-            <!-- Table of Contents -->
-            <div class="toc">
-                <div class="toc-title">Quick Navigation</div>
-                <ul class="toc-list">
-                    <li><a href="#overview">Overview</a></li>
-                    <li><a href="#authentication">Authentication</a></li>
-                    <li><a href="#responses">Response Format</a></li>
-                    <li><a href="#sales">Sales & Transactions</a></li>
-                    <li><a href="#payment-stats">Payment Statistics</a></li>
-                    <li><a href="#email">Email Endpoints</a></li>
-                    <li><a href="#data">Data Retrieval</a></li>
-                    <li><a href="#store">Store Management</a></li>
-                    <li><a href="#sync">Category Synchronization</a></li>
-                    <li><a href="#tickets">Ticket Display</a></li>
-                    <li><a href="#heartbeat">Keep-Alive Heartbeat</a></li>
-                    <li><a href="#errors">Error Handling</a></li>
-                    <li><a href="#examples">Code Examples</a></li>
-                    <li><a href="#database">Database Reference</a></li>
-                </ul>
-            </div>
-
-            <!-- Authentication Section -->
-            <div class="section" id="authentication">
-                <h2 class="section-title">Authentication</h2>
-                <p style="margin-bottom: 20px; color: var(--text-muted);">
-                    Most endpoints do not require authentication. Where authentication is needed, include your access token in the Authorization header.
-                </p>
-                <div class="code-block">
-                    <code>Authorization: Bearer YOUR_ACCESS_TOKEN</code>
-                </div>
-            </div>
-
-            <!-- Response Format Section -->
-            <div class="section" id="responses">
-                <h2 class="section-title">Response Format</h2>
+        <div class="content">
+            <!-- Overview -->
+            <div class="section">
+                <h2>📋 Overview</h2>
+                <p>The Makseb Statistique API provides comprehensive endpoints for managing restaurant sales data, ticket records, payment information, and cash register closures (Z records). The API supports real-time updates via Socket.IO and includes advanced filtering and pagination capabilities.</p>
                 
-                <h3 style="margin-bottom: 16px; font-size: 16px; color: var(--text);">Success Response</h3>
-                <div class="code-block">
-                    <pre><code class="language-json">{
-  "status": 200,
-  "data": { },
-  "message": "Operation completed successfully"
-}</code></pre>
+                <div class="note">
+                    <strong>ℹ️ Updated Features:</strong> This version includes new Z (Cloture) management endpoints and improved multi-filter logic for better data filtering accuracy.
                 </div>
 
-                <h3 style="margin-bottom: 16px; font-size: 16px; color: var(--text);">Error Response</h3>
-                <div class="code-block">
-                    <pre><code class="language-json">{
-  "status": 500,
-  "error": "Internal Server Error",
-  "message": "Detailed error message"
-}</code></pre>
+                <h3>Base URL</h3>
+                <div class="path">http://localhost:8002</div>
+
+                <h3>Total Endpoints: 32</h3>
+                <table>
+                    <tr>
+                        <th>Category</th>
+                        <th>Count</th>
+                        <th>Purpose</th>
+                    </tr>
+                    <tr>
+                        <td>Sales Statistics</td>
+                        <td>5</td>
+                        <td>Sales summaries and financial data</td>
+                    </tr>
+                    <tr>
+                        <td>Email Services</td>
+                        <td>2</td>
+                        <td>Email notifications and PDF distribution</td>
+                    </tr>
+                    <tr>
+                        <td>Tickets/Orders</td>
+                        <td>7</td>
+                        <td>Ticket retrieval with filtering</td>
+                    </tr>
+                    <tr>
+                        <td>Payment Statistics</td>
+                        <td>1</td>
+                        <td>Payment method analysis</td>
+                    </tr>
+                    <tr>
+                        <td>Store Management</td>
+                        <td>5</td>
+                        <td>Store configuration and licensing</td>
+                    </tr>
+                    <tr>
+                        <td>Categories & Images</td>
+                        <td>3</td>
+                        <td>Product data synchronization</td>
+                    </tr>
+                    <tr>
+                        <td>Z/Closures <span class="new-badge">NEW</span></td>
+                        <td>5</td>
+                        <td>Cash register closure management</td>
+                    </tr>
+                    <tr>
+                        <td>Documentation</td>
+                        <td>1</td>
+                        <td>API reference</td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- Sales Statistics -->
+            <div class="section">
+                <h2>💰 Sales Statistics Endpoints</h2>
+
+                <div class="endpoint">
+                    <span class="method post">POST</span>
+                    <span class="path">/update-live-stats</span>
+                    <p>Update real-time sales statistics</p>
+                    <div class="params">
+                        <h4>Parameters:</h4>
+                        <ul class="param-list">
+                            <li><code>idCRM</code> - Store ID</li>
+                            <li><code>salesData</code> - Sale information object</li>
+                        </ul>
+                    </div>
                 </div>
 
-                <h3 style="margin-bottom: 16px; font-size: 16px; color: var(--text); margin-top: 24px;">HTTP Status Codes</h3>
-                <div class="status-codes">
-                    <div class="status-code">
-                        <div class="status-code-number">200</div>
-                        <div class="status-code-desc">OK - Success</div>
+                <div class="endpoint">
+                    <span class="method post">POST</span>
+                    <span class="path">/update-transaction-data</span>
+                    <p>Update transaction and payment information</p>
+                    <div class="params">
+                        <h4>Parameters:</h4>
+                        <ul class="param-list">
+                            <li><code>idCRM</code> - Store ID</li>
+                            <li><code>transactionData</code> - Transaction object</li>
+                        </ul>
                     </div>
-                    <div class="status-code">
-                        <div class="status-code-number">201</div>
-                        <div class="status-code-desc">Created</div>
+                </div>
+
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <span class="path">/get-sales-summary</span>
+                    <p>Get aggregated sales summary for a date range</p>
+                    <div class="params">
+                        <h4>Query Parameters:</h4>
+                        <ul class="param-list">
+                            <li><code>idCRM</code> (required) - Store ID</li>
+                            <li><code>date1</code> (required) - Start date (YYYYMMDD)</li>
+                            <li><code>date2</code> (required) - End date (YYYYMMDD)</li>
+                        </ul>
                     </div>
-                    <div class="status-code">
-                        <div class="status-code-number">400</div>
-                        <div class="status-code-desc">Bad Request</div>
+                    <div class="response">
+                        <h4>Response:</h4>
+                        <ul class="param-list">
+                            <li><code>success</code> - Boolean</li>
+                            <li><code>totalTTC</code> - Total with tax</li>
+                            <li><code>totalHT</code> - Total without tax</li>
+                            <li><code>paymentMethods</code> - Breakdown by payment type</li>
+                            <li><code>fulfillmentMethods</code> - Breakdown by consumption mode</li>
+                        </ul>
                     </div>
-                    <div class="status-code">
-                        <div class="status-code-number">404</div>
-                        <div class="status-code-desc">Not Found</div>
+                </div>
+
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <span class="path">/get-detailed-sales-summary</span>
+                    <p>Get detailed financial breakdown with more metrics</p>
+                    <div class="params">
+                        <h4>Query Parameters:</h4>
+                        <ul class="param-list">
+                            <li><code>idCRM</code> - Store ID</li>
+                            <li><code>date1</code> - Start date (YYYYMMDD)</li>
+                            <li><code>date2</code> - End date (YYYYMMDD)</li>
+                        </ul>
                     </div>
-                    <div class="status-code">
-                        <div class="status-code-number">500</div>
-                        <div class="status-code-desc">Server Error</div>
+                </div>
+
+                <div class="endpoint">
+                    <span class="method post">POST</span>
+                    <span class="path">/update-payment-settlement</span>
+                    <p>Update payment settlement and reglement data</p>
+                </div>
+            </div>
+
+            <!-- Tickets/Orders -->
+            <div class="section">
+                <h2>🎫 Tickets & Orders Endpoints</h2>
+
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <span class="path">/get-tickets</span>
+                    <span class="fixed-badge">FIXED</span>
+                    <p>Get tickets with advanced filtering <strong>(Multi-filter logic corrected)</strong></p>
+                    <div class="params">
+                        <h4>Query Parameters:</h4>
+                        <ul class="param-list">
+                            <li><code>idCRM</code> (required) - Store ID</li>
+                            <li><code>date1</code> (required) - Start date (YYYYMMDD)</li>
+                            <li><code>date2</code> (required) - End date (YYYYMMDD)</li>
+                            <li><code>page</code> (optional, default: 1) - Page number</li>
+                            <li><code>limit</code> (optional, default: 50) - Records per page</li>
+                            <li><code>search</code> (optional) - Text search (ticket #, customer)</li>
+                            <li><code>paymentMethod</code> (optional) - Filter: CARD, CASH, MEAL_VOUCHER, CHECK, etc.</li>
+                            <li><code>fulfillmentMode</code> (optional) - Filter: Sur Place, À Emporter, Livraison</li>
+                        </ul>
+                    </div>
+                    <div class="note">
+                        <strong>✅ New in this version:</strong> Multiple filters now use AND logic correctly.
+                        <br/>Example: <code>paymentMethod=CARD&fulfillmentMode=Takeaway</code> returns CARD payments that are Takeaway (not CARD OR Takeaway)
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <span class="path">/get-orders</span>
+                    <p>Alias for /get-tickets (same implementation for orders listing)</p>
+                </div>
+
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <span class="path">/get-tickets-by-z/:idCRM/:zId</span>
+                    <span class="new-badge">NEW</span>
+                    <p>Get tickets for a specific closure period (Z number)</p>
+                    <div class="params">
+                        <h4>Path Parameters:</h4>
+                        <ul class="param-list">
+                            <li><code>:idCRM</code> (required) - Store ID</li>
+                            <li><code>:zId</code> (required) - Closure ID (Z number)</li>
+                        </ul>
+                        <h4>Query Parameters:</h4>
+                        <ul class="param-list">
+                            <li><code>search</code> (optional) - Text search</li>
+                            <li><code>paymentMethod</code> (optional) - Payment filter</li>
+                            <li><code>fulfillmentMode</code> (optional) - Fulfillment filter</li>
+                            <li><code>page</code> (optional, default: 1) - Page number</li>
+                            <li><code>limit</code> (optional, default: 50) - Records per page</li>
+                        </ul>
+                    </div>
+                    <div class="response">
+                        <h4>Response:</h4>
+                        <ul class="param-list">
+                            <li><code>data</code> - Array of tickets between closure N and N-1</li>
+                            <li><code>totalCount</code> - Total number of tickets in period</li>
+                            <li><code>page</code> - Current page</li>
+                            <li><code>totalPages</code> - Total number of pages</li>
+                        </ul>
+                    </div>
+                    <div class="note">
+                        <strong>ℹ️ How it works:</strong> Returns all tickets between the selected closure's timestamp and the previous closure's timestamp. Perfect for reconciliation by shift.
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <span class="method post">POST</span>
+                    <span class="path">/update-ticket</span>
+                    <p>Update individual ticket information</p>
+                </div>
+
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <span class="path">/display-tickets</span>
+                    <p>Generate HTML display of tickets</p>
+                </div>
+
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <span class="path">/display-tickets-detailed</span>
+                    <p>Generate detailed HTML ticket display</p>
+                </div>
+
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <span class="path">/display-ticket-receipt/:idCRM/:date/:idTiquer</span>
+                    <p>Get formatted ticket receipt for display/printing</p>
+                    <div class="params">
+                        <h4>Path Parameters:</h4>
+                        <ul class="param-list">
+                            <li><code>:idCRM</code> - Store ID</li>
+                            <li><code>:date</code> - Ticket date</li>
+                            <li><code>:idTiquer</code> - Ticket ID</li>
+                        </ul>
                     </div>
                 </div>
             </div>
 
-            <!-- Sales & Transactions -->
-            <div class="section" id="sales">
-                <h2 class="section-title">Sales & Transactions</h2>
-
-                <!-- Update Live Stats -->
-                <div class="endpoint">
-                    <div class="endpoint-header">
-                        <span class="method post">POST</span>
-                        <span class="endpoint-path">/update-live-stats</span>
-                    </div>
-                    <p class="endpoint-description">Updates live statistics data for a store on a specific date.</p>
-                    <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;"><strong>Deprecated:</strong> Previously <code style="color: var(--accent);">/Update3</code></p>
-                    
-                    <div class="params-title">Request Body</div>
-                    <div class="code-block">
-                        <pre><code class="language-json">{
-  "IdCRM": "2435",
-  "date": "20260204",
-  "totalSales": 1234.50,
-  "itemCount": 45
-}</code></pre>
-                    </div>
-
-                    <div class="params-title">Parameters</div>
-                    <table class="params-table">
-                        <thead>
-                            <tr>
-                                <th>Parameter</th>
-                                <th>Type</th>
-                                <th>Description</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><span class="param-name">IdCRM</span></td>
-                                <td><span class="param-type">string</span></td>
-                                <td>Restaurant unique identifier <span class="badge required">Required</span></td>
-                            </tr>
-                            <tr>
-                                <td><span class="param-name">date</span></td>
-                                <td><span class="param-type">string</span></td>
-                                <td>Date in YYYYMMDD format <span class="badge required">Required</span></td>
-                            </tr>
-                        </tbody>
-                    </table>
-
-                    <div class="params-title" style="margin-top: 20px;">Response</div>
-                    <div class="response-box">
-                        <div class="response-label">200 OK</div>
-                        <div class="code-block" style="margin-bottom: 0;">
-                            <pre><code class="language-json">{
-  "status": 200,
-  "message": "Statistics updated successfully"
-}</code></pre>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Update Transaction Data -->
-                <div class="endpoint">
-                    <div class="endpoint-header">
-                        <span class="method post">POST</span>
-                        <span class="endpoint-path">/update-transaction-data</span>
-                    </div>
-                    <p class="endpoint-description">Records and updates transaction data for a specific date.</p>
-                    <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;"><strong>Deprecated:</strong> Previously <code style="color: var(--accent);">/Update4</code></p>
-                    
-                    <div class="params-title">Request Body</div>
-                    <div class="code-block">
-                        <pre><code class="language-json">{
-  "IdCRM": "2435",
-  "date": "20260204",
-  "transactions": [
-    {
-      "transactionId": "TR001",
-      "amount": 45.50,
-      "timestamp": "15:30"
-    }
-  ]
-}</code></pre>
-                    </div>
-
-                    <div class="status-codes">
-                        <div class="status-code">
-                            <div class="status-code-number">200</div>
-                            <div class="status-code-desc">Success</div>
-                        </div>
-                        <div class="status-code">
-                            <div class="status-code-number">500</div>
-                            <div class="status-code-desc">Server Error</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Update Ticket -->
-                <div class="endpoint">
-                    <div class="endpoint-header">
-                        <span class="method post">POST</span>
-                        <span class="endpoint-path">/update-ticket</span>
-                    </div>
-                    <p class="endpoint-description">Creates or updates a ticket record. Does not update if ticket already exists.</p>
-                    <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;"><strong>Deprecated:</strong> Previously <code style="color: var(--accent);">/UpdateTiquer</code></p>
-                    
-                    <div class="params-title">Request Body - Complete Example (All Attributes)</div>
-                    <div class="code-block">
-                        <pre><code class="language-json">{
-  "IdCRM": "2435",
-  "Date": "20260217",
-  "idTiquer": 100,
-  "HeureTicket": "15:30",
-  "TTC": 62.99,
-  "currency": "€",
-  "merchant_name": "RESTAURANT PREMIUM",
-  "merchant_address": "123 CULINARY STREET, PARIS",
-  "SIRET": "12345678901234",
-  "ConsumptionMode": "Dine-in",
-  "Menu": [
-    {
-      "NameProduct": "MENU SANDWICH DELUXE",
-      "TTC": 0,
-      "QtyProduct": 1,
-      "Sup": [
-        {
-          "NameProduct": "EXTRA CHICKEN TANDOORI",
-          "QtyProduct": 1,
-          "TTC": 8.90
-        },
-        {
-          "NameProduct": "CHEESE TOPPING",
-          "QtyProduct": 1,
-          "TTC": 2.50
-        }
-      ],
-      "Gredient": [
-        {
-          "NameProduct": "PAIN COMPLET",
-          "QtyProduct": 1,
-          "TTC": 0
-        },
-        {
-          "NameProduct": "SAUCE MAISON",
-          "QtyProduct": 1,
-          "TTC": 0
-        }
-      ],
-      "Gredient2": [
-        {
-          "NameProduct": "SANS TOMATE",
-          "QtyProduct": 0,
-          "TTC": 0
-        }
-      ]
-    },
-    {
-      "NameProduct": "BOISSON PREMIUM",
-      "TTC": 5.99,
-      "QtyProduct": 2,
-      "Sup": [],
-      "Gredient": [],
-      "Gredient2": []
-    }
-  ],
-  "PaymentMethods": [
-    {
-      "payment_method": "CARD",
-      "amount": 30.00
-    },
-    {
-      "payment_method": "CASH",
-      "amount": 32.99
-    }
-  ],
-  "Totals": {
-    "Total_Ht": 57.27,
-    "Total_TVA": 5.72,
-    "Total_TTC": 62.99
-  },
-  "NF525": "FF98765432109876",
-  "TVA_intra": "FR12345678901",
-  "NAF_code": "5610C",
-  "copy_type": "Original",
-  "copy_number": "1",
-  "Order_number": "ORD-2026-100",
-  "Signature": "John Customer",
-  "software_version": "2.1.0",
-  "CardDetails": {
-    "merchant_name": "RESTAURANT PREMIUM",
-    "transaction_type": "CONTACTLESS DEBIT",
-    "date_time": "17/02/2026 15:30:45",
-    "terminal_id": "340001999100",
-    "merchant_id": "1999188",
-    "card_scheme": "VISA",
-    "AID": "A0000000041010",
-    "masked_pan": "############4242",
-    "authorization_number": "5f7e4",
-    "total_amount": "30,00 EUR",
-    "receipt_type": "CUSTOMER COPY",
-    "sequence_number": "2100 1850"
-  }
-}</code></pre>
-                    </div>
-
-                    <div class="params-title">Key Fields</div>
-                    <table class="params-table">
-                        <thead>
-                            <tr>
-                                <th>Field</th>
-                                <th>Type</th>
-                                <th>Required</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><span class="param-name">IdCRM</span></td>
-                                <td><span class="param-type">string</span></td>
-                                <td><span class="badge required">Yes</span></td>
-                            </tr>
-                            <tr>
-                                <td><span class="param-name">Date</span></td>
-                                <td><span class="param-type">string (YYYYMMDD)</span></td>
-                                <td><span class="badge required">Yes</span></td>
-                            </tr>
-                            <tr>
-                                <td><span class="param-name">idTiquer</span></td>
-                                <td><span class="param-type">number</span></td>
-                                <td><span class="badge required">Yes</span></td>
-                            </tr>
-                            <tr>
-                                <td><span class="param-name">HeureTicket</span></td>
-                                <td><span class="param-type">string (HH:MM)</span></td>
-                                <td><span class="badge required">Yes</span></td>
-                            </tr>
-                            <tr>
-                                <td><span class="param-name">Menu</span></td>
-                                <td><span class="param-type">array</span></td>
-                                <td><span class="badge required">Yes</span></td>
-                            </tr>
-                            <tr>
-                                <td><span class="param-name">Totals</span></td>
-                                <td><span class="param-type">object</span></td>
-                                <td><span class="badge required">Yes</span></td>
-                            </tr>
-                            <tr>
-                                <td><span class="param-name">currency</span></td>
-                                <td><span class="param-type">string</span></td>
-                                <td><span class="badge required">Yes</span></td>
-                            </tr>
-                            <tr>
-                                <td><span class="param-name">merchant_name</span></td>
-                                <td><span class="param-type">string</span></td>
-                                <td><span class="badge required">Yes</span></td>
-                            </tr>
-                            <tr>
-                                <td><span class="param-name">merchant_address</span></td>
-                                <td><span class="param-type">string</span></td>
-                                <td><span class="badge required">Yes</span></td>
-                            </tr>
-                            <tr>
-                                <td><span class="param-name">SIRET</span></td>
-                                <td><span class="param-type">string</span></td>
-                                <td><span class="badge required">Yes</span></td>
-                            </tr>
-                            <tr>
-                                <td><span class="param-name">PaymentMethods</span></td>
-                                <td><span class="param-type">array</span></td>
-                                <td><span class="badge optional">No</span></td>
-                            </tr>
-                            <tr>
-                                <td><span class="param-name">NF525</span></td>
-                                <td><span class="param-type">string</span></td>
-                                <td><span class="badge optional">No</span></td>
-                            </tr>
-                            <tr>
-                                <td><span class="param-name">TVA_intra</span></td>
-                                <td><span class="param-type">string</span></td>
-                                <td><span class="badge optional">No</span></td>
-                            </tr>
-                            <tr>
-                                <td><span class="param-name">NAF_code</span></td>
-                                <td><span class="param-type">string</span></td>
-                                <td><span class="badge optional">No</span></td>
-                            </tr>
-                            <tr>
-                                <td><span class="param-name">copy_type</span></td>
-                                <td><span class="param-type">string ("Original" or "Duplicata")</span></td>
-                                <td><span class="badge optional">No</span></td>
-                            </tr>
-                            <tr>
-                                <td><span class="param-name">copy_number</span></td>
-                                <td><span class="param-type">string</span></td>
-                                <td><span class="badge optional">No</span></td>
-                            </tr>
-                            <tr>
-                                <td><span class="param-name">Order_number</span></td>
-                                <td><span class="param-type">string</span></td>
-                                <td><span class="badge optional">No</span></td>
-                            </tr>
-                            <tr>
-                                <td><span class="param-name">CardDetails</span></td>
-                                <td><span class="param-type">object</span></td>
-                                <td><span class="badge optional">No</span></td>
-                            </tr>
-                            <tr>
-                                <td><span class="param-name">Signature</span></td>
-                                <td><span class="param-type">string</span></td>
-                                <td><span class="badge optional">No</span></td>
-                            </tr>
-                            <tr>
-                                <td><span class="param-name">software_version</span></td>
-                                <td><span class="param-type">string</span></td>
-                                <td><span class="badge optional">No</span></td>
-                            </tr>
-                        </tbody>
-                    </table>
-
-                    <h3 style="margin-top: 24px; margin-bottom: 12px; font-size: 14px; color: var(--text); font-weight: 600;">Totals Object Structure</h3>
-                    <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 12px;">The <code style="color: var(--accent);">Totals</code> object contains financial breakdown information:</p>
-                    <div class="code-block">
-                        <pre><code class="language-json">{
-  "Totals": {
-    "Total_Ht": 45.90,
-    "Total_TVA": 5.59,
-    "Total_TTC": 51.49
-  }
-}</code></pre>
-                    </div>
-                    <ul class="feature-list">
-                        <li><code style="color: var(--accent);">Total_Ht</code> - Subtotal (HT: Hors Taxe / before tax)</li>
-                        <li><code style="color: var(--accent);">Total_TVA</code> - Tax amount (TVA: Value Added Tax)</li>
-                        <li><code style="color: var(--accent);">Total_TTC</code> - Grand Total (TTC: Tax Inclusive Total)</li>
-                    </ul>
-
-                    <h3 style="margin-top: 24px; margin-bottom: 12px; font-size: 14px; color: var(--text); font-weight: 600;">Payment Methods Format</h3>
-                    <div style="background: rgba(59, 130, 246, 0.1); border-left: 3px solid #3b82f6; padding: 12px 16px; border-radius: 4px; font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
-                        <p style="margin: 0 0 8px 0;"><strong style="color: var(--text);">New Format (Recommended):</strong></p>
-                        <p style="margin: 0;"><code style="color: var(--accent);">PaymentMethods</code> array with <code style="color: var(--accent);">payment_method</code> and <code style="color: var(--accent);">amount</code> fields</p>
-                    </div>
-
-                    <h3 style="margin-bottom: 12px; font-size: 13px; color: var(--text); font-weight: 600;">Allowed Payment Methods</h3>
-                    <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 12px;">System only accepts the following payment method types:</p>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 12px; margin-bottom: 16px;">
-                        <div style="background: rgba(16, 185, 129, 0.1); border-left: 3px solid #10b981; padding: 12px; border-radius: 4px; text-align: center;">
-                            <div style="font-weight: 600; color: var(--text);">CASH</div>
-                            <div style="font-size: 12px; color: var(--text-muted);">Cash payments</div>
-                        </div>
-                        <div style="background: rgba(59, 130, 246, 0.1); border-left: 3px solid #3b82f6; padding: 12px; border-radius: 4px; text-align: center;">
-                            <div style="font-weight: 600; color: var(--text);">CARD</div>
-                            <div style="font-size: 12px; color: var(--text-muted);">Card payments</div>
-                        </div>
-                        <div style="background: rgba(249, 115, 22, 0.1); border-left: 3px solid var(--accent); padding: 12px; border-radius: 4px; text-align: center;">
-                            <div style="font-weight: 600; color: var(--text);">CHECK</div>
-                            <div style="font-size: 12px; color: var(--text-muted);">Check payments</div>
-                        </div>
-                    </div>
-
-                    <h3 style="margin-bottom: 12px; font-size: 13px; color: var(--text); font-weight: 600;">Payment Validation Rules</h3>
-                    <ul class="feature-list">
-                        <li><code style="color: var(--accent);">payment_method</code> must be one of: CASH, CARD, CHECK</li>
-                        <li>Case-insensitive (accepts "cash", "CASH", "Cash")</li>
-                        <li>Sum of all <code style="color: var(--accent);">amount</code> values MUST equal ticket <code style="color: var(--accent);">TTC</code></li>
-                        <li>Tolerance: 0.01€ for floating-point differences</li>
-                        <li>Returns 400 error if payment method is invalid or amounts don't match</li>
-                        <li>Supports multiple payment methods in single transaction</li>
-                    </ul>
-
-                    <h3 style="margin-bottom: 12px; font-size: 13px; color: var(--text); font-weight: 600;">ConsumptionMode - ENGLISH ONLY - Allowed Values</h3>
-                    <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 12px;"><strong style="color: #ef4444;">STRICT VALIDATION:</strong> ConsumptionMode must be in ENGLISH and case-sensitive. French or mixed-language values will return 400 error.</p>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin-bottom: 16px;">
-                        <div style="background: rgba(16, 185, 129, 0.1); border-left: 3px solid #10b981; padding: 12px; border-radius: 4px;">
-                            <div style="font-weight: 600; color: var(--text); margin-bottom: 4px;">Takeaway</div>
-                            <div style="font-size: 12px; color: var(--text-muted);">Customer takes order away</div>
-                        </div>
-                        <div style="background: rgba(59, 130, 246, 0.1); border-left: 3px solid #3b82f6; padding: 12px; border-radius: 4px;">
-                            <div style="font-weight: 600; color: var(--text); margin-bottom: 4px;">Dine-in</div>
-                            <div style="font-size: 12px; color: var(--text-muted);">Customer dining at location</div>
-                        </div>
-                        <div style="background: rgba(249, 115, 22, 0.1); border-left: 3px solid var(--accent); padding: 12px; border-radius: 4px;">
-                            <div style="font-weight: 600; color: var(--text); margin-bottom: 4px;">Delivery</div>
-                            <div style="font-size: 12px; color: var(--text-muted);">Order is delivered</div>
-                        </div>
-                    </div>
-
-                    <h3 style="margin-bottom: 12px; font-size: 13px; color: var(--text); font-weight: 600;">ConsumptionMode - INVALID Values (Returns 400)</h3>
-                    <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 12px;">The following values will be rejected:</p>
-                    <ul class="feature-list" style="margin-bottom: 12px;">
-                        <li><code style="color: #ef4444;">"À Emporter"</code> → Use <code style="color: #10b981;">"Takeaway"</code></li>
-                        <li><code style="color: #ef4444;">"A Emporter"</code> → Use <code style="color: #10b981;">"Takeaway"</code></li>
-                        <li><code style="color: #ef4444;">"SUR PLACE"</code> → Use <code style="color: #10b981;">"Dine-in"</code></li>
-                        <li><code style="color: #ef4444;">"Sur Place"</code> → Use <code style="color: #10b981;">"Dine-in"</code></li>
-                        <li><code style="color: #ef4444;">"Livraison"</code> → Use <code style="color: #10b981;">"Delivery"</code></li>
-                    </ul>
-
-                    <div class="code-label">Error Response Example - Invalid ConsumptionMode</div>
-                    <div class="code-block">
-                        <pre><code class="language-json">HTTP 400 Bad Request
-{
-  "status": "error",
-  "code": 400,
-  "message": "Invalid ConsumptionMode",
-  "error": "Invalid ConsumptionMode: 'À Emporter'. Must be one of: Takeaway, Dine-in, Delivery",
-  "allowed_values": ["Takeaway", "Dine-in", "Delivery"]
-}</code></pre>
-                    </div>
-
-                    <div class="code-label" style="margin-top: 16px;">Payment Methods Example</div>
-                    <div class="code-block">
-                        <pre><code class="language-json">{
-  "PaymentMethods": [
-    {
-      "payment_method": "CASH",
-      "amount": 30.00
-    },
-    {
-      "payment_method": "CARD",
-      "amount": 21.49
-    }
-  ]
-}</code></pre>
-                    </div>
-
-                    <h3 style="margin-top: 24px; margin-bottom: 12px; font-size: 14px; color: var(--text); font-weight: 600;">Merchant Info Section</h3>
-                    <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 12px;">All of the following fields are required and display in the ticket header (centered with bottom border):</p>
-                    <ul class="feature-list">
-                        <li><code style="color: var(--accent);">merchant_name</code> - Name of the merchant or restaurant (required)</li>
-                        <li><code style="color: var(--accent);">merchant_address</code> - Address of the merchant/restaurant (required)</li>
-                        <li><code style="color: var(--accent);">SIRET</code> - SIRET identification number (required)</li>
-                        <li><code style="color: var(--accent);">Ticket N°</code> - Auto-filled from idTiquer (required)</li>
-                    </ul>
-
-                    <h3 style="margin-top: 24px; margin-bottom: 12px; font-size: 14px; color: var(--text); font-weight: 600;">Optional Header & Footer Fields</h3>
-                    <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 12px;">Display additional information in ticket header (sent with request):</p>
-                    <div class="code-block">
-                        <pre><code class="language-json">{
-  "NF525": "FF12345678901234567",
-  "TVA_intra": "FR12345678901",
-  "NAF_code": "5610A",
-  "copy_type": "Original",
-  "copy_number": "1",
-  "Order_number": "ORD-2026-001"
-}</code></pre>
-                    </div>
-                    <p style="color: var(--text-muted); font-size: 13px; margin: 12px 0;"><strong style="color: var(--text);">Auto-Calculated Footer Fields:</strong></p>
-                    <ul class="feature-list">
-                        <li><code style="color: var(--accent);">Line Count</code> - Automatically calculated from number of items in Menu array</li>
-                        <li><code style="color: var(--accent);">Item Count</code> - Total quantity of items (sum of all QtyProduct)</li>
-                    </ul>
-
-                    <h3 style="margin-top: 24px; margin-bottom: 12px; font-size: 14px; color: var(--text); font-weight: 600;">Optional Card Payment Details</h3>
-                    <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 12px;">Include detailed card transaction information (displays when payment method is CARD):</p>
-                    <div class="code-block">
-                        <pre><code class="language-json">{
-  "CardDetails": {
-    "merchant_name": "NEPTING",
-    "transaction_type": "CONTACTLESS DEBIT",
-    "date_time": "23/01/2026 09:40:37",
-    "terminal_id": "340001999100",
-    "merchant_id": "1999188",
-    "card_scheme": "MASTERCARD",
-    "AID": "A0000000041010",
-    "masked_pan": "############9517",
-    "authorization_number": "4e6d3",
-    "total_amount": "6,00 EUR",
-    "receipt_type": "CUSTOMER COPY",
-    "sequence_number": "1508 1652"
-  }
-}</code></pre>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Payment Statistics -->
-            <div class="section" id="payment-stats">
-                <h2 class="section-title">Payment Statistics</h2>
+            <!-- Z/Closures Management -->
+            <div class="section">
+                <h2>🔐 Z (Cloture) Management Endpoints <span class="new-badge">NEW</span></h2>
+                <p>Cash register closure (Z record) management for shift tracking and financial reconciliation.</p>
 
                 <div class="endpoint">
-                    <div class="endpoint-header">
-                        <span class="method get">GET</span>
-                        <span class="endpoint-path">/get-payment-statistics</span>
-                    </div>
-                    <p class="endpoint-description">Retrieves payment method statistics and aggregation for a store within a date range. <span class="badge success">NEW</span></p>
-                    
-                    <div class="params-title">Query Parameters</div>
-                    <table class="params-table">
-                        <thead>
-                            <tr>
-                                <th>Parameter</th>
-                                <th>Type</th>
-                                <th>Required</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><span class="param-name">idCRM</span></td>
-                                <td><span class="param-type">string</span></td>
-                                <td><span class="badge required">Yes</span></td>
-                            </tr>
-                            <tr>
-                                <td><span class="param-name">date1</span></td>
-                                <td><span class="param-type">string</span></td>
-                                <td><span class="badge required">Yes</span></td>
-                            </tr>
-                            <tr>
-                                <td><span class="param-name">date2</span></td>
-                                <td><span class="param-type">string</span></td>
-                                <td><span class="badge required">Yes</span></td>
-                            </tr>
-                        </tbody>
-                    </table>
-
-                    <span class="code-label" style="margin-top: 16px;">Example Request</span>
-                    <div class="code-block">
-                        <pre><code>GET /get-payment-statistics?idCRM=2435&date1=20260101&date2=20260228</code></pre>
-                    </div>
-
-                    <div class="params-title">Response</div>
-                    <div class="response-box">
-                        <div class="response-label">200 OK - Payment Statistics</div>
-                        <div class="code-block" style="margin-bottom: 0;">
-                            <pre><code class="language-json">{
-  "status": "success",
-  "data": {
-    "total_revenue": 5234.50,
-    "total_transactions": 45,
-    "date_range": {
-      "start": "20260101",
-      "end": "20260228"
-    },
-    "payment_methods": {
-      "CASH": {
-        "total_amount": 3000.00,
-        "transaction_count": 25,
-        "average_transaction": 120.00
-      },
-      "CARD": {
-        "total_amount": 2234.50,
-        "transaction_count": 20,
-        "average_transaction": 111.73
-      }
-    },
-    "payment_breakdown": [
-      {
-        "payment_method": "CASH",
-        "total_amount": 3000.00,
-        "transaction_count": 25,
-        "average_amount": 120.00,
-        "percentage_of_total": 57.38
-      },
-      {
-        "payment_method": "CARD",
-        "total_amount": 2234.50,
-        "transaction_count": 20,
-        "average_amount": 111.73,
-        "percentage_of_total": 42.62
-      }
-    ]
-  },
-  "message": "Payment statistics retrieved successfully"
-}</code></pre>
-                        </div>
-                    </div>
-
-                    <h3 style="margin-top: 24px; margin-bottom: 12px; font-size: 14px; color: var(--text); font-weight: 600;">Response Data Fields</h3>
-                    <ul class="feature-list">
-                        <li><code style="color: var(--accent);">total_revenue</code> - Total amount across all transactions</li>
-                        <li><code style="color: var(--accent);">total_transactions</code> - Number of transactions in period</li>
-                        <li><code style="color: var(--accent);">payment_methods</code> - Detailed breakdown by method</li>
-                        <li><code style="color: var(--accent);">payment_breakdown</code> - Sorted array (highest revenue first)</li>
-                        <li><code style="color: var(--accent);">percentage_of_total</code> - Revenue contribution %</li>
-                    </ul>
-
-                    <div class="status-codes">
-                        <div class="status-code">
-                            <div class="status-code-number">200</div>
-                            <div class="status-code-desc">Success</div>
-                        </div>
-                        <div class="status-code">
-                            <div class="status-code-number">400</div>
-                            <div class="status-code-desc">Missing parameters</div>
-                        </div>
-                        <div class="status-code">
-                            <div class="status-code-number">404</div>
-                            <div class="status-code-desc">No data found</div>
-                        </div>
-                        <div class="status-code">
-                            <div class="status-code-number">500</div>
-                            <div class="status-code-desc">Server error</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Email -->
-            <div class="section" id="email">
-                <h2 class="section-title">Email Endpoints</h2>
-
-                <div class="endpoint">
-                    <div class="endpoint-header">
-                        <span class="method post">POST</span>
-                        <span class="endpoint-path">/send-welcome-email</span>
-                    </div>
-                    <p class="endpoint-description">Sends a welcome email with account credentials and ticket link.</p>
-                    <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;"><strong>Deprecated:</strong> Previously <code style="color: var(--accent);">/sendemail</code></p>
-                    
-                    <div class="params-title">Request Body</div>
-                    <div class="code-block">
-                        <pre><code class="language-json">{
-  "email": "customer@example.com",
-  "name": "Restaurant Name",
-  "lien": "https://example.com/ticket/123"
-}</code></pre>
-                    </div>
-
-                    <div class="params-title">Parameters</div>
-                    <table class="params-table">
-                        <thead>
-                            <tr>
-                                <th>Parameter</th>
-                                <th>Type</th>
-                                <th>Required</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><span class="param-name">email</span></td>
-                                <td><span class="param-type">string</span></td>
-                                <td><span class="badge required">Yes</span></td>
-                            </tr>
-                            <tr>
-                                <td><span class="param-name">name</span></td>
-                                <td><span class="param-type">string</span></td>
-                                <td><span class="badge required">Yes</span></td>
-                            </tr>
-                            <tr>
-                                <td><span class="param-name">lien</span></td>
-                                <td><span class="param-type">string</span></td>
-                                <td><span class="badge required">Yes</span></td>
-                            </tr>
-                        </tbody>
-                    </table>
-
-                    <div class="params-title" style="margin-top: 20px;">Response</div>
-                    <div class="response-box">
-                        <div class="response-label">200 OK</div>
-                        <div class="code-block" style="margin-bottom: 0;">
-                            <pre><code class="language-json">{
-  "message": "Email sent successfully."
-}</code></pre>
-                        </div>
+                    <span class="method post">POST</span>
+                    <span class="path">/z</span>
+                    <p>Create a new closure record</p>
+                    <div class="params">
+                        <h4>Request Body:</h4>
+                        <ul class="param-list">
+                            <li><code>IDCloture</code> (number) - Closure ID</li>
+                            <li><code>Date_cloture</code> (date) - Closure date</li>
+                            <li><code>HeureCloture</code> (string) - Closure time HH:MM:SS</li>
+                            <li><code>User</code> (string) - Cashier name</li>
+                            <li><code>RECETTE</code> (number) - Total sales</li>
+                            <li><code>RETRAIT</code> (number) - Withdrawal amount</li>
+                            <li><code>IdCRM</code> (string) - Store ID</li>
+                        </ul>
                     </div>
                 </div>
 
                 <div class="endpoint">
-                    <div class="endpoint-header">
-                        <span class="method post">POST</span>
-                        <span class="endpoint-path">/send-pdf-email</span>
-                    </div>
-                    <p class="endpoint-description">Sends an email with PDF attachment or PDF URL.</p>
-                    <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;"><strong>Deprecated:</strong> Previously <code style="color: var(--accent);">/sendPdfInemail</code></p>
-                    
-                    <div class="params-title">Request Body</div>
-                    <div class="code-block">
-                        <pre><code class="language-json">{
-  "email": "customer@example.com",
-  "name": "Restaurant Name",
-  "pdf": "base64-pdf-content-or-url"
-}</code></pre>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Data Retrieval -->
-            <div class="section" id="data">
-                <h2 class="section-title">Data Retrieval</h2>
-
-                <div class="endpoint">
-                    <div class="endpoint-header">
-                        <span class="method get">GET</span>
-                        <span class="endpoint-path">/get-sales-summary</span>
-                    </div>
-                    <p class="endpoint-description">Retrieves aggregated sales statistics for a store within a date range.</p>
-                    <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;"><strong>Deprecated:</strong> Previously <code style="color: var(--accent);">/SumData</code></p>
-                    
-                    <div class="params-title">Query Parameters</div>
-                    <table class="params-table">
-                        <thead>
-                            <tr>
-                                <th>Parameter</th>
-                                <th>Type</th>
-                                <th>Required</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><span class="param-name">idCRM</span></td>
-                                <td><span class="param-type">string</span></td>
-                                <td><span class="badge required">Yes</span></td>
-                            </tr>
-                            <tr>
-                                <td><span class="param-name">date1</span></td>
-                                <td><span class="param-type">string</span></td>
-                                <td><span class="badge required">Yes</span></td>
-                            </tr>
-                            <tr>
-                                <td><span class="param-name">date2</span></td>
-                                <td><span class="param-type">string</span></td>
-                                <td><span class="badge required">Yes</span></td>
-                            </tr>
-                        </tbody>
-                    </table>
-
-                    <span class="code-label">Example Request</span>
-                    <div class="code-block">
-                        <pre><code>GET /get-sales-summary?idCRM=2435&date1=20260101&date2=20260228</code></pre>
-                    </div>
-
-                    <div class="params-title">Response</div>
-                    <div class="response-box">
-                        <div class="response-label">200 OK</div>
-                        <div class="code-block" style="margin-bottom: 0;">
-                            <pre><code class="language-json">[
-  {
-    "IdCRM": "2435",
-    "date": "20260101",
-    "totalSales": 1234.50,
-    "itemCount": 45
-  }
-]</code></pre>
-                        </div>
+                    <span class="method get">GET</span>
+                    <span class="path">/z/:idCRM</span>
+                    <p>Get all closures for a store (no filtering)</p>
+                    <div class="params">
+                        <h4>Path Parameters:</h4>
+                        <ul class="param-list">
+                            <li><code>:idCRM</code> (required) - Store ID</li>
+                        </ul>
                     </div>
                 </div>
 
                 <div class="endpoint">
-                    <div class="endpoint-header">
-                        <span class="method get">GET</span>
-                        <span class="endpoint-path">/get-tickets</span>
+                    <span class="method get">GET</span>
+                    <span class="path">/closures/:idCRM</span>
+                    <span class="new-badge">NEW</span>
+                    <p>Get closures with optional date range filtering and pagination</p>
+                    <div class="params">
+                        <h4>Path Parameters:</h4>
+                        <ul class="param-list">
+                            <li><code>:idCRM</code> (required) - Store ID</li>
+                        </ul>
+                        <h4>Query Parameters:</h4>
+                        <ul class="param-list">
+                            <li><code>date1</code> (optional) - Start date (YYYYMMDD)</li>
+                            <li><code>date2</code> (optional) - End date (YYYYMMDD)</li>
+                            <li><code>page</code> (optional, default: 1) - Page number</li>
+                            <li><code>limit</code> (optional, default: 50) - Records per page</li>
+                        </ul>
                     </div>
-                    <p class="endpoint-description">Retrieves all tickets for a store within a date range.</p>
-                    <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;"><strong>Deprecated:</strong> Previously <code style="color: var(--accent);">/GetTiquer</code></p>
-                    
-                    <span class="code-label">Example Request</span>
-                    <div class="code-block">
-                        <pre><code>GET /get-tickets?idCRM=2435&date1=20260101&date2=20260131</code></pre>
+                    <div class="response">
+                        <h4>Response:</h4>
+                        <ul class="param-list">
+                            <li><code>success</code> - Boolean</li>
+                            <li><code>data</code> - Array of closure records</li>
+                            <li><code>totalCount</code> - Total closures in range</li>
+                            <li><code>totalPages</code> - Total number of pages</li>
+                            <li><code>page</code> - Current page</li>
+                            <li><code>limit</code> - Records per page</li>
+                        </ul>
                     </div>
+                    <div class="note">
+                        <strong>✨ Feature:</strong> Automatically filters closures by selected date range. Used by frontend to populate closure dropdown scoped to current time period selection.
+                    </div>
+                </div>
 
-                    <div class="params-title">Response</div>
-                    <div class="response-box">
-                        <div class="response-label">200 OK - Array of Tickets</div>
-                        <div class="code-block" style="margin-bottom: 0;">
-                            <pre><code class="language-json">[
-  {
-    "_id": "693d765ffba51e4799b4db3e",
-    "idTiquer": "30",
-    "Date": "20251213",
-    "HeureTicket": "15:21",
-    "TTC": 51.49,
-    "Menu": [...]
-  }
-]</code></pre>
-                        </div>
+                <div class="endpoint">
+                    <span class="method put">PUT</span>
+                    <span class="path">/z/:idCRM/:zId</span>
+                    <p>Update a closure record</p>
+                    <div class="params">
+                        <h4>Path Parameters:</h4>
+                        <ul class="param-list">
+                            <li><code>:idCRM</code> - Store ID</li>
+                            <li><code>:zId</code> - Closure ID</li>
+                        </ul>
+                        <h4>Request Body:</h4>
+                        <ul class="param-list">
+                            <li><code>RECETTE</code> (optional) - Updated sales amount</li>
+                            <li><code>RETRAIT</code> (optional) - Updated withdrawal</li>
+                            <li><code>User</code> (optional) - Updated cashier name</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <span class="method delete">DELETE</span>
+                    <span class="path">/z/:idCRM/:zId</span>
+                    <p>Delete a closure record</p>
+                    <div class="params">
+                        <h4>Path Parameters:</h4>
+                        <ul class="param-list">
+                            <li><code>:idCRM</code> - Store ID</li>
+                            <li><code>:zId</code> - Closure ID</li>
+                        </ul>
                     </div>
                 </div>
             </div>
 
             <!-- Store Management -->
-            <div class="section" id="store">
-                <h2 class="section-title">Store Management</h2>
+            <div class="section">
+                <h2>🏪 Store Management Endpoints</h2>
 
                 <div class="endpoint">
-                    <div class="endpoint-header">
-                        <span class="method post">POST</span>
-                        <span class="endpoint-path">/update-store-status</span>
-                    </div>
-                    <p class="endpoint-description">Updates store status and last interaction timestamp.</p>
-                    <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;"><strong>Deprecated:</strong> Previously <code style="color: var(--accent);">/statusStores</code></p>
-                    
-                    <div class="params-title">Request Body</div>
-                    <div class="code-block">
-                        <pre><code class="language-json">{
-  "IdCRM": "2435",
-  "LastCommand": "REBOOT",
-  "Status": "Activer"
-}</code></pre>
-                    </div>
+                    <span class="method post">POST</span>
+                    <span class="path">/update-store-status</span>
+                    <p>Update store status and configuration</p>
                 </div>
 
                 <div class="endpoint">
-                    <div class="endpoint-header">
-                        <span class="method get">GET</span>
-                        <span class="endpoint-path">/get-license/:idCRM</span>
-                    </div>
-                    <p class="endpoint-description">Checks if store has active license.</p>
-                    <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;"><strong>Deprecated:</strong> Previously <code style="color: var(--accent);">/GetLicence/:idCRM</code></p>
-                    
-                    <span class="code-label">Example Request</span>
-                    <div class="code-block">
-                        <pre><code>GET /get-license/2435</code></pre>
-                    </div>
-
-                    <div class="params-title">Response</div>
-                    <div class="response-box">
-                        <div class="response-label">200 OK</div>
-                        <div class="code-block" style="margin-bottom: 0;">
-                            <pre><code class="language-json">{
-  "hasLicense": "EMakseb"
-}</code></pre>
-                        </div>
-                    </div>
-
-                    <div style="color: var(--text-muted); font-size: 13px; margin-top: 12px;">
-                        <strong>Possible Values:</strong><br>
-                        • <code style="color: var(--accent);">EMakseb</code> - License enabled<br>
-                        • <code style="color: var(--accent);">MaksebD</code> - License disabled/demo
-                    </div>
+                    <span class="method get">GET</span>
+                    <span class="path">/get-license/:idCRM</span>
+                    <p>Get store license information</p>
                 </div>
 
                 <div class="endpoint">
-                    <div class="endpoint-header">
-                        <span class="method get">GET</span>
-                        <span class="endpoint-path">/get-store-name/:idCRM</span>
-                    </div>
-                    <p class="endpoint-description">Retrieves store/restaurant information.</p>
-                    <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;"><strong>Deprecated:</strong> Previously <code style="color: var(--accent);">/GetBaseName/:idCRM</code></p>
-                    
-                    <span class="code-label">Example Request</span>
-                    <div class="code-block">
-                        <pre><code>GET /get-store-name/2435</code></pre>
-                    </div>
+                    <span class="method get">GET</span>
+                    <span class="path">/get-store-name/:idCRM</span>
+                    <p>Get store name and details</p>
                 </div>
 
                 <div class="endpoint">
-                    <div class="endpoint-header">
-                        <span class="method get">GET</span>
-                        <span class="endpoint-path">/update-license/:idCRM/:action</span>
-                    </div>
-                    <p class="endpoint-description">Updates store license status.</p>
-                    <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;"><strong>Deprecated:</strong> Previously <code style="color: var(--accent);">/UpdateLicence/:idCRM/:action</code></p>
-                    
-                    <span class="code-label">Example Request</span>
-                    <div class="code-block">
-                        <pre><code>GET /update-license/2435/Enable</code></pre>
-                    </div>
-                    <div style="color: var(--text-muted); font-size: 13px; margin-top: 12px;">
-                        <strong>Action Values:</strong><br>
-                        • <code style="color: var(--accent);">Enable</code> - Activate license<br>
-                        • <code style="color: var(--accent);">Disable</code> - Deactivate license
-                    </div>
+                    <span class="method get">GET</span>
+                    <span class="path">/update-license/:idCRM/:action</span>
+                    <p>Update license status</p>
+                </div>
+
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <span class="path">/update-database/:idCRM/:action</span>
+                    <p>Update database configuration</p>
                 </div>
             </div>
 
-            <!-- Category Sync -->
-            <div class="section" id="sync">
-                <h2 class="section-title">Category & Image Synchronization</h2>
+            <!-- Payment Statistics -->
+            <div class="section">
+                <h2>💳 Payment Analytics</h2>
 
                 <div class="endpoint">
-                    <div class="endpoint-header">
-                        <span class="method post">POST</span>
-                        <span class="endpoint-path">/sync-categories-to-folder</span>
-                    </div>
-                    <p class="endpoint-description">Synchronizes product categories to local folder structure.</p>
-                    <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;"><strong>Deprecated:</strong> Previously <code style="color: var(--accent);">/updateAllCatInFolder</code></p>
-                    
-                    <div class="params-title">Request Body</div>
-                    <div class="code-block">
-                        <pre><code class="language-json">{
-  "idCRM": "2435",
-  "categories": [
-    {
-      "name": "Sandwiches",
-      "id": "CAT001"
-    }
-  ]
-}</code></pre>
-                    </div>
-                </div>
-
-                <div class="endpoint">
-                    <div class="endpoint-header">
-                        <span class="method get">GET</span>
-                        <span class="endpoint-path">/get-product-images</span>
-                    </div>
-                    <p class="endpoint-description">Retrieves product images and category information.</p>
-                    <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;"><strong>Deprecated:</strong> Previously <code style="color: var(--accent);">/GetImages</code></p>
-                    
-                    <div class="params-title">Query Parameters</div>
-                    <table class="params-table">
-                        <thead>
-                            <tr>
-                                <th>Parameter</th>
-                                <th>Type</th>
-                                <th>Required</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><span class="param-name">idCRM</span></td>
-                                <td><span class="param-type">string</span></td>
-                                <td><span class="badge optional">No</span></td>
-                            </tr>
-                            <tr>
-                                <td><span class="param-name">category</span></td>
-                                <td><span class="param-type">string</span></td>
-                                <td><span class="badge optional">No</span></td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <span class="method get">GET</span>
+                    <span class="path">/get-payment-statistics</span>
+                    <p>Get detailed payment method statistics</p>
                 </div>
             </div>
 
-            <!-- Ticket Display -->
-            <div class="section" id="tickets">
-                <h2 class="section-title">Ticket Display</h2>
+            <!-- Email Services -->
+            <div class="section">
+                <h2>📧 Email Services</h2>
 
                 <div class="endpoint">
-                    <div class="endpoint-header">
-                        <span class="method get">GET</span>
-                        <span class="endpoint-path">/display-ticket-receipt/:idCRM/:date/:idTiquer</span>
-                    </div>
-                    <p class="endpoint-description">Displays individual ticket receipt with PDF download capability. <span class="badge success">PRIMARY ENDPOINT</span></p>
-                    <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;"><strong>Deprecated:</strong> Previously <code style="color: var(--accent);">/AfficheTicketResto/:idCRM/:date/:idTiquer</code></p>
-                    
-                    <div class="params-title">Path Parameters</div>
-                    <table class="params-table">
-                        <thead>
-                            <tr>
-                                <th>Parameter</th>
-                                <th>Type</th>
-                                <th>Description</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><span class="param-name">idCRM</span></td>
-                                <td><span class="param-type">string</span></td>
-                                <td>Restaurant identifier <span class="badge required">Required</span></td>
-                            </tr>
-                            <tr>
-                                <td><span class="param-name">date</span></td>
-                                <td><span class="param-type">string</span></td>
-                                <td>Ticket date (YYYYMMDD format) <span class="badge required">Required</span></td>
-                            </tr>
-                            <tr>
-                                <td><span class="param-name">idTiquer</span></td>
-                                <td><span class="param-type">string</span></td>
-                                <td>Ticket unique identifier <span class="badge required">Required</span></td>
-                            </tr>
-                        </tbody>
-                    </table>
-
-                    <span class="code-label">Example Request</span>
-                    <div class="code-block">
-                        <pre><code>GET /display-ticket-receipt/2435/20251213/30</code></pre>
-                    </div>
-
-                    <div class="params-title">Response</div>
-                    <div class="response-box">
-                        <div class="response-label">200 OK - HTML Page</div>
-                        <p style="font-size: 13px; color: var(--text-muted); margin: 8px 0;">
-                            Returns formatted HTML ticket with embedded PDF download button
-                        </p>
-                    </div>
-
-                    <h3 style="margin-top: 24px; margin-bottom: 12px; font-size: 14px; color: var(--text); font-weight: 600;">Features</h3>
-                    <ul class="feature-list">
-                        <li>Professional receipt-style layout (80x200mm when printed)</li>
-                        <li>Monospace Dina font for authentic ticket appearance</li>
-                        <li>Client-side PDF generation (no server load)</li>
-                        <li>Sticky floating PDF download button</li>
-                        <li>Mobile responsive design</li>
-                        <li>Complete menu item details with supplements and exclusions</li>
-                        <li>Payment method and totals display</li>
-                    </ul>
-
-                    <h3 style="margin-top: 24px; margin-bottom: 12px; font-size: 14px; color: var(--text); font-weight: 600;">Unique Identification</h3>
-                    <div style="background: rgba(59, 130, 246, 0.1); border-left: 3px solid #3b82f6; padding: 12px 16px; border-radius: 4px; font-size: 13px; color: var(--text-muted);">
-                        Tickets are uniquely identified by combining three fields:
-                        <ul style="list-style: none; padding: 8px 0 0 0; margin: 0;">
-                            <li style="padding: 4px 0;"><strong style="color: var(--text);">idCRM</strong> - Restaurant identifier</li>
-                            <li style="padding: 4px 0;"><strong style="color: var(--text);">Date</strong> - Ticket date (YYYYMMDD)</li>
-                            <li style="padding: 4px 0;"><strong style="color: var(--text);">idTiquer</strong> - Ticket number</li>
-                        </ul>
-                    </div>
-
-                    <div class="status-codes" style="margin-top: 20px;">
-                        <div class="status-code">
-                            <div class="status-code-number">200</div>
-                            <div class="status-code-desc">HTML page rendered</div>
-                        </div>
-                        <div class="status-code">
-                            <div class="status-code-number">404</div>
-                            <div class="status-code-desc">Ticket not found</div>
-                        </div>
-                        <div class="status-code">
-                            <div class="status-code-number">500</div>
-                            <div class="status-code-desc">Server error</div>
-                        </div>
-                    </div>
+                    <span class="method post">POST</span>
+                    <span class="path">/send-welcome-email</span>
+                    <p>Send welcome/notification email</p>
                 </div>
 
                 <div class="endpoint">
-                    <div class="endpoint-header">
-                        <span class="method get">GET</span>
-                        <span class="endpoint-path">/display-tickets</span>
-                    </div>
-                    <p class="endpoint-description">Generates and displays HTML formatted tickets list.</p>
-                    <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;"><strong>Deprecated:</strong> Previously <code style="color: var(--accent);">/AfficheTicket</code></p>
-                    
-                    <div class="params-title">Query Parameters</div>
-                    <table class="params-table">
-                        <thead>
-                            <tr>
-                                <th>Parameter</th>
-                                <th>Type</th>
-                                <th>Required</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><span class="param-name">idCRM</span></td>
-                                <td><span class="param-type">string</span></td>
-                                <td><span class="badge required">Yes</span></td>
-                            </tr>
-                            <tr>
-                                <td><span class="param-name">date1</span></td>
-                                <td><span class="param-type">string</span></td>
-                                <td><span class="badge required">Yes</span></td>
-                            </tr>
-                            <tr>
-                                <td><span class="param-name">date2</span></td>
-                                <td><span class="param-type">string</span></td>
-                                <td><span class="badge required">Yes</span></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="endpoint">
-                    <div class="endpoint-header">
-                        <span class="method get">GET</span>
-                        <span class="endpoint-path">/display-tickets-detailed</span>
-                    </div>
-                    <p class="endpoint-description">Displays detailed formatted tickets with full information breakdown.</p>
-                    <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;"><strong>Deprecated:</strong> Previously <code style="color: var(--accent);">/AfficheTicket2</code></p>
+                    <span class="method post">POST</span>
+                    <span class="path">/send-pdf-email</span>
+                    <p>Send PDF report via email</p>
                 </div>
             </div>
 
-            <!-- Keep-Alive Heartbeat -->
-            <div class="section" id="heartbeat">
-                <h2 class="section-title">Keep-Alive Heartbeat</h2>
-                
-                <p style="margin-bottom: 20px; color: var(--text-muted);">
-                    This API is hosted on Render, which puts free-tier services to sleep after 15 minutes of inactivity. Use the heartbeat endpoint with an external monitoring service to keep your server awake 24/7.
-                </p>
+            <!-- Categories -->
+            <div class="section">
+                <h2>📁 Categories & Images</h2>
 
                 <div class="endpoint">
-                    <div class="endpoint-header">
-                        <span class="method get">GET</span>
-                        <span class="endpoint-path">/heartbeat</span>
-                    </div>
-                    <p class="endpoint-description">Lightweight endpoint for monitoring service pings to keep server awake.</p>
-
-                    <span class="code-label">Example Request</span>
-                    <div class="code-block">
-                        <pre><code>GET https://four3-96-aasg.onrender.com/heartbeat</code></pre>
-                    </div>
-
-                    <div class="params-title">Response</div>
-                    <div class="response-box">
-                        <div class="response-label">200 OK</div>
-                        <div class="code-block" style="margin-bottom: 0;">
-                            <pre><code class="language-json">{
-  "status": "alive",
-  "timestamp": "2026-02-06T15:30:45.123Z",
-  "uptime": 3600
-}</code></pre>
-                        </div>
-                    </div>
-
-                    <h3 style="margin-top: 24px; margin-bottom: 12px; font-size: 14px; color: var(--text); font-weight: 600;">Keep-Alive Setup</h3>
-                    
-                    <p style="margin-bottom: 12px; color: var(--text-muted); font-size: 13px;">
-                        Use an external monitoring service to ping this endpoint every 5-10 minutes:
-                    </p>
-
-                    <div style="background: rgba(16, 185, 129, 0.1); border-left: 3px solid #10b981; padding: 16px; border-radius: 4px; margin-bottom: 16px;">
-                        <p style="font-size: 13px; color: var(--text-muted); margin: 0;">
-                            <strong style="color: var(--text);">Recommended:</strong> <a href="https://uptimerobot.com" style="color: #34d399; text-decoration: none;">UptimeRobot</a> (Free, checks every 5 minutes)
-                        </p>
-                    </div>
-
-                    <h4 style="margin-bottom: 12px; font-size: 13px; color: var(--text); font-weight: 600;">Alternative Services</h4>
-                    <ul class="feature-list">
-                        <li><a href="https://www.freshping.io" style="color: #f97316; text-decoration: none;">Freshping</a> - Free uptime monitoring</li>
-                        <li><a href="https://monitoring.express" style="color: #f97316; text-decoration: none;">Monitoring.express</a> - Simple free checks</li>
-                        <li>GitHub Actions - Free with your repository</li>
-                        <li>Custom cron jobs - Self-hosted solution</li>
-                    </ul>
-
-                    <h4 style="margin-top: 20px; margin-bottom: 12px; font-size: 13px; color: var(--text); font-weight: 600;">cURL Example</h4>
-                    <div class="code-block">
-                        <pre><code class="language-bash">curl https://four3-96-aasg.onrender.com/heartbeat</code></pre>
-                    </div>
-
-                    <div class="status-codes">
-                        <div class="status-code">
-                            <div class="status-code-number">200</div>
-                            <div class="status-code-desc">Server is running</div>
-                        </div>
-                        <div class="status-code">
-                            <div class="status-code-number">500</div>
-                            <div class="status-code-desc">Server encountered an error</div>
-                        </div>
-                    </div>
-
-                    <div style="background: rgba(249, 115, 22, 0.1); border-left: 3px solid var(--accent); padding: 12px 16px; border-radius: 4px; font-size: 12px; color: var(--text-muted); margin-top: 16px;">
-                        <strong style="color: var(--text);">Note:</strong> No authentication required. This endpoint is kept simple and lightweight for external monitoring services.
-                    </div>
+                    <span class="method post">POST</span>
+                    <span class="path">/sync-categories-to-folder</span>
+                    <p>Sync product categories to file system</p>
                 </div>
 
-                <h3 style="margin-top: 32px; margin-bottom: 16px; font-size: 16px; color: var(--text);">Why Keep-Alive is Needed</h3>
-                <p style="color: var(--text-muted); margin-bottom: 16px; font-size: 13px;">
-                    Render's free tier spins down servers after 15 minutes of inactivity. Without a keep-alive service:
-                </p>
-                <ul class="feature-list">
-                    <li>Server goes to sleep automatically after 15 minutes</li>
-                    <li>First request after sleep takes 30+ seconds (server restart)</li>
-                    <li>Subsequent requests are fast again</li>
-                    <li>This cycle repeats every 15 minutes of inactivity</li>
+                <div class="endpoint">
+                    <span class="method post">POST</span>
+                    <span class="path">/sync-categories-to-database</span>
+                    <p>Sync product categories to database</p>
+                </div>
+
+                <div class="endpoint">
+                    <span class="method get">GET</span>
+                    <span class="path">/get-product-images</span>
+                    <p>Get product image inventory</p>
+                </div>
+            </section>
+
+            <!-- Common Filters -->
+            <div class="section">
+                <h2>🔍 Common Filters & Parameters</h2>
+
+                <h3>Payment Methods</h3>
+                <p>Use these values for <code>paymentMethod</code> parameter:</p>
+                <ul>
+                    <li><code>CARD</code> - Credit/Debit Card</li>
+                    <li><code>CASH</code> - Cash</li>
+                    <li><code>MEAL_VOUCHER</code> - Meal Voucher</li>
+                    <li><code>CHECK</code> - Check</li>
+                    <li><code>FIDELITY_POINTS</code> - Fidelity Points</li>
+                    <li><code>STORE_CREDIT</code> - Store Credit</li>
+                    <li><code>CORPORATE_ACCOUNT</code> - Corporate Account</li>
                 </ul>
 
-                <p style="color: var(--text-muted); margin-top: 16px; font-size: 13px;">
-                    <strong>Solution:</strong> External service pings heartbeat every 5-10 minutes → Server stays awake → All requests respond in <100ms
-                </p>
-            </div>
+                <h3>Fulfillment/Consumption Modes</h3>
+                <p>Use these values for <code>fulfillmentMode</code> parameter:</p>
+                <ul>
+                    <li><code>Sur Place</code> - Dine-in</li>
+                    <li><code>À Emporter</code> - Takeaway/To-go</li>
+                    <li><code>Livraison</code> - Delivery</li>
+                </ul>
 
-            <!-- Error Handling -->
-            <div class="section" id="errors">
-                <h2 class="section-title">Error Handling</h2>
+                <h3>Date Format</h3>
+                <p>All dates use <strong>YYYYMMDD</strong> format:</p>
+                <ul>
+                    <li><code>20260330</code> = March 30, 2026</li>
+                    <li><code>20260101</code> = January 1, 2026</li>
+                    <li><code>20251215</code> = December 15, 2025</li>
+                </ul>
 
-                <table class="params-table">
-                    <thead>
-                        <tr>
-                            <th>Error</th>
-                            <th>Cause</th>
-                            <th>Solution</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><span class="param-name">Ticket not found</span></td>
-                            <td>Invalid idCRM, date, or idTiquer</td>
-                            <td>Verify all three parameters match database records</td>
-                        </tr>
-                        <tr>
-                            <td><span class="param-name">Livestats not found</span></td>
-                            <td>No data in date range</td>
-                            <td>Check date format (YYYYMMDD) and range validity</td>
-                        </tr>
-                        <tr>
-                            <td><span class="param-name">E-mail sending error</span></td>
-                            <td>SMTP configuration issue</td>
-                            <td>Verify email address and lien parameter</td>
-                        </tr>
-                        <tr>
-                            <td><span class="param-name">Missing required parameters</span></td>
-                            <td>Incomplete request</td>
-                            <td>Review endpoint documentation for required fields</td>
-                        </tr>
-                    </tbody>
-                </table>
+                <h3>Time Format (Closures)</h3>
+                <p>Time in closure records uses <strong>HH:MM:SS</strong> format (24-hour):</p>
+                <ul>
+                    <li><code>23:00:00</code> = 11 PM</li>
+                    <li><code>12:30:45</code> = 12:30:45 PM</li>
+                    <li><code>00:15:30</code> = 12:15:30 AM</li>
+                </ul>
             </div>
 
             <!-- Examples -->
-            <div class="section" id="examples">
-                <h2 class="section-title">Code Examples</h2>
+            <div class="section">
+                <h2>📝 Usage Examples</h2>
 
-                <h3 style="margin-bottom: 16px; font-size: 16px; color: var(--text);">JavaScript / Node.js</h3>
+                <h3>Example 1: Get Sales Summary</h3>
+                <div class="path">GET /get-sales-summary?idCRM=9999&date1=20260301&date2=20260330</div>
+                <p>Returns aggregated sales for store 9999 for March 1-30, 2026</p>
 
-                <span class="code-label">Get Tickets</span>
-                <div class="code-block">
-                    <pre><code class="language-javascript">const fetch = require('node-fetch');
+                <h3>Example 2: Filter Tickets with Multiple Criteria</h3>
+                <div class="path">GET /get-tickets?idCRM=9999&date1=20260315&date2=20260330&paymentMethod=CARD&fulfillmentMode=Takeaway&page=1&limit=25</div>
+                <p>Returns CARD payments that are Takeaway orders (March 15-30, page 1)</p>
 
-async function getTickets(idCRM, startDate, endDate) {
-  const url = `https://four3-96-aasg.onrender.com/get-tickets?idCRM=${idCRM}&date1=${startDate}&date2=${endDate}`;
-  
-  try {
-    const response = await fetch(url);
-    const tickets = await response.json();
-    console.log(tickets);
-    return tickets;
-  } catch (error) {
-    console.error('Error:', error);
-  }
-}
+                <h3>Example 3: Get Closures for Date Range</h3>
+                <div class="path">GET /closures/9999?date1=20260315&date2=20260330&page=1&limit=100</div>
+                <p>Returns closures (Z records) between March 15-30, 2026</p>
 
-getTickets('2435', '20260101', '20260131');</code></pre>
-                </div>
+                <h3>Example 4: Get Tickets with Closure Period</h3>
+                <div class="path">GET /get-tickets-by-z/9999/5?paymentMethod=CASH&page=1&limit=50</div>
+                <p>Returns CASH tickets from closure Z 5's period</p>
 
-                <span class="code-label">Create Ticket</span>
-                <div class="code-block">
-                    <pre><code class="language-javascript">async function createTicket(ticketData) {
-  const url = 'https://four3-96-aasg.onrender.com/update-ticket';
-  
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(ticketData)
-  });
-  
-  return response.status === 200;
-}</code></pre>
-                </div>
-
-                <h3 style="margin: 32px 0 16px; font-size: 16px; color: var(--text);">cURL</h3>
-
-                <span class="code-label">Get Sales Summary</span>
-                <div class="code-block">
-                    <pre><code class="language-bash">curl -X GET "https://four3-96-aasg.onrender.com/get-sales-summary?idCRM=2435&date1=20260101&date2=20260228"</code></pre>
-                </div>
-
-                <span class="code-label">Display Ticket Receipt</span>
-                <div class="code-block">
-                    <pre><code class="language-bash">curl "https://four3-96-aasg.onrender.com/display-ticket-receipt/2435/20251213/30" -o ticket.html</code></pre>
-                </div>
-
-                <span class="code-label">Get Payment Statistics</span>
-                <div class="code-block">
-                    <pre><code class="language-bash">curl "https://four3-96-aasg.onrender.com/get-payment-statistics?idCRM=2435&date1=20260101&date2=20260228"</code></pre>
-                </div>
-
-                <span class="code-label">Send Welcome Email</span>
-                <div class="code-block">
-                    <pre><code class="language-bash">curl -X POST https://four3-96-aasg.onrender.com/send-welcome-email \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "customer@example.com",
-    "name": "My Restaurant",
-    "lien": "https://example.com/receipt"
-  }'</code></pre>
-                </div>
+                <h3>Example 5: Create New Closure</h3>
+                <div class="path">POST /z</div>
+                <pre>Body: {
+  "IDCloture": 11,
+  "Date_cloture": "2026-03-30T23:30:00Z",
+  "HeureCloture": "23:30:00",
+  "User": "Cashier_1",
+  "RECETTE": 2500.50,
+  "RETRAIT": 250.00,
+  "IdCRM": "9999"
+}</pre>
             </div>
 
-            <!-- Database Reference -->
-            <div class="section" id="database">
-                <h2 class="section-title">Database Reference</h2>
-
-                <h3 style="margin-bottom: 16px; font-size: 16px; color: var(--text);">Tiquer Collection</h3>
-                <p style="color: var(--text-muted); margin-bottom: 12px;">Stores individual ticket records</p>
+            <!-- Changelog -->
+            <div class="section">
+                <h2>📢 Latest Updates</h2>
                 
-                <span class="code-label">Key Fields</span>
-                <div class="code-block">
-                    <pre><code class="language-json">{
-  "IdCRM": "2435",
-  "Date": "20251213",
-  "idTiquer": "30",
-  "HeureTicket": "15:21",
-  "TTC": 51.49,
-  "Menu": [...],
-  "Totals": {
-    "Total_Ht": 8.091,
-    "Total_TVA": 0.809,
-    "Total_TTC": 8.9
-  },
-  "ModePaiement": [...]
-}</code></pre>
-                </div>
-
-                <div style="background: rgba(249, 115, 22, 0.1); border-left: 3px solid var(--accent); padding: 12px 16px; border-radius: 4px; font-size: 13px; color: var(--text-muted); margin-top: 16px;">
-                    <strong style="color: var(--text);">Unique Index:</strong> {IdCRM, Date, idTiquer}
-                </div>
-
-                <h3 style="margin: 32px 0 16px; font-size: 16px; color: var(--text);">User Collection</h3>
-                <p style="color: var(--text-muted); margin-bottom: 12px;">Stores store/restaurant information and licensing</p>
-                
-                <span class="code-label">Key Fields</span>
-                <div class="code-block">
-                    <pre><code class="language-json">{
-  "idCRM": "2435",
-  "name": "MISTER GRILL",
-  "Licence": "Enable",
-  "Status": "Activer",
-  "LastCommand": "REBOOT",
-  "lastInteraction": "2026-02-06T15:30:00Z"
-}</code></pre>
+                <div class="category">
+                    <h3>March 30, 2026 - Z Management & Filter Improvements</h3>
+                    <ul style="margin-left: 20px;">
+                        <li><span class="new-badge">NEW</span> <strong>GET /get-tickets-by-z/:idCRM/:zId</strong> - Fetch tickets by closure period</li>
+                        <li><span class="new-badge">NEW</span> <strong>GET /closures/:idCRM</strong> - List closures with date filtering</li>
+                        <li><span class="new-badge">NEW</span> <strong>POST /z, PUT /z, DELETE /z</strong> - Complete Z CRUD operations</li>
+                        <li><span class="fixed-badge">FIXED</span> <strong>Multi-filter Logic</strong> - Filter combinations now use AND instead of OR</li>
+                        <li><span class="new-badge">NEW</span> <strong>Cloture Model</strong> - Dedicated collection for Z records with proper indexing</li>
+                        <li>Frontend closure dropdown with automatic date-range filtering</li>
+                        <li>Separated Z data from individual ticket records (database normalization)</li>
+                    </ul>
                 </div>
             </div>
 
-            <!-- Footer -->
-            <div style="border-top: 1px solid var(--border); margin-top: 64px; padding-top: 32px; color: var(--text-muted); font-size: 13px;">
-                <p style="margin-bottom: 12px;">
-                    <strong>Live Stats API v1.0</strong><br>
-                    Last updated: February 2026
-                </p>
-                <p>For support, contact: <a href="mailto:commandes@makseb.fr" style="color: var(--accent); text-decoration: none;">commandes@makseb.fr</a></p>
+            <!-- Support -->
+            <div class="section">
+                <h2>❓ Support & Questions</h2>
+                <p>For issues or questions about the API:</p>
+                <ul style="margin-left: 20px;">
+                    <li>Check the backend console logs for detailed operation logs</li>
+                    <li>Verify date formats (YYYYMMDD) match expected format</li>
+                    <li>Ensure idCRM and zId parameters are correct</li>
+                    <li>For pagination, use page starting from 1</li>
+                    <li>Payment and fulfillment filters are case-sensitive</li>
+                </ul>
             </div>
+
         </div>
     </div>
-
-    <!-- Back to Top Button -->
-    <button class="back-to-top" onclick="scrollToTop()">↑</button>
-
-    <script>
-        // Highlight code blocks
-        hljs.highlightAll();
-
-        // Navigation
-        function scrollToSection(sectionId) {
-            const element = document.getElementById(sectionId);
-            if (element) {
-                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                updateActiveNav(sectionId);
-            }
-        }
-
-        function updateActiveNav(sectionId) {
-            document.querySelectorAll('.nav-link').forEach(link => {
-                link.classList.remove('active');
-            });
-            event.target.classList.add('active');
-        }
-
-        // Back to top button
-        const backToTopBtn = document.querySelector('.back-to-top');
-        window.addEventListener('scroll', () => {
-            if (window.pageYOffset > 300) {
-                backToTopBtn.classList.add('visible');
-            } else {
-                backToTopBtn.classList.remove('visible');
-            }
-        });
-
-        function scrollToTop() {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        // Copy to clipboard
-        document.querySelectorAll('.code-block').forEach(block => {
-            const btn = document.createElement('button');
-            btn.className = 'copy-btn';
-            btn.textContent = 'Copy';
-            btn.onclick = () => {
-                const code = block.querySelector('code').textContent;
-                navigator.clipboard.writeText(code);
-                btn.textContent = 'Copied!';
-                setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
-            };
-            block.style.position = 'relative';
-            block.appendChild(btn);
-        });
-    </script>
 </body>
 </html>
