@@ -592,29 +592,56 @@ const UpdateTiquer = async (req, res) => {
           console.log(`    ├─ Status: ${ticket.status}`);
           
           // Count by ticket status
-          const status = ticket.status || 'Encaiser'; // Default to Encaiser if no status
-          console.log(`    ├─ Status counting: "${status}"`);
-          if (status === 'Encaiser' || status === 'Collected' || status === 'Paid') {
+          const rawStatus = (ticket.status || 'Encaiser').toString().trim();
+          const normalizedStatus = rawStatus.toLowerCase();
+          console.log(`    ├─ Status counting: "${rawStatus}" (normalized: "${normalizedStatus}")`);
+
+          const isCollected = ['encaiser', 'collected', 'paid'].includes(normalizedStatus);
+          const isCancelled = ['annuler', 'cancelled', 'cancel', 'cancled', 'canceled'].includes(normalizedStatus);
+          const isRefunded = ['rembourser', 'refunded', 'refund'].includes(normalizedStatus);
+
+          if (isCollected) {
             aggregated.EtatTiquer.Encaiser++;
             console.log(`      → Counted as Encaiser (total: ${aggregated.EtatTiquer.Encaiser})`);
-          } else if (status === 'Annuler' || status === 'Cancelled' || status === 'Cancel') {
+          } else if (isCancelled) {
             aggregated.EtatTiquer.Annuler++;
             console.log(`      → Counted as Annuler (total: ${aggregated.EtatTiquer.Annuler})`);
-          } else if (status === 'Rembourser' || status === 'Refunded' || status === 'Refund') {
+          } else if (isRefunded) {
             aggregated.EtatTiquer.Rembourser++;
             console.log(`      → Counted as Rembourser (total: ${aggregated.EtatTiquer.Rembourser})`);
           } else {
-            // Unknown status, count as collected
+            // Unknown status, count as collected by default
             aggregated.EtatTiquer.Encaiser++;
-            console.log(`    ⚠️  Unknown status "${status}", counted as Encaiser`);
+            console.log(`    ⚠️  Unknown status "${rawStatus}", counted as Encaiser`);
           }
           
           // Only include revenue and details from collected tickets
-          if (status === 'Encaiser' || status === 'Collected' || status === 'Paid') {
+          if (isCollected) {
             // Sum revenue
-            aggregated.ChiffreAffaire.Total_TTC += parseFloat(ticket.TTC || 0);
-            aggregated.ChiffreAffaire.Total_HT += parseFloat(ticket.Totals?.Total_Ht || 0);
-            aggregated.ChiffreAffaire.Total_TVA += parseFloat(ticket.Totals?.Total_TVA || 0);
+            const ticketTTC = parseFloat(ticket.TTC || 0);
+            let ticketHT = parseFloat(ticket.Totals?.Total_Ht || 0);
+            let ticketTVA = parseFloat(ticket.Totals?.Total_TVA || 0);
+
+            // 100x scale normalization: some older records stored cents/100 data in Total_Ht/Total_TVA
+            if (ticketHT > ticketTTC * 10) {
+              ticketHT = ticketHT / 100;
+            }
+            if (ticketTVA > ticketTTC * 10) {
+              ticketTVA = ticketTVA / 100;
+            }
+
+            // If totals still do not align with TTC, fallback to 10% VAT split from TTC
+            if (ticketTTC > 0 && Math.abs(ticketTTC - (ticketHT + ticketTVA)) > Math.max(0.05, ticketTTC * 0.03)) {
+              const inferredHT = ticketTTC / 1.1;
+              const inferredTVA = ticketTTC - inferredHT;
+              console.log(`    ⚙️  Inconsistent financial totals for ticket ${ticket.idTiquer}: TTC=${ticketTTC}, HT=${ticketHT}, TVA=${ticketTVA}. Using inferred HT=${inferredHT.toFixed(3)}, TVA=${inferredTVA.toFixed(3)}.`);
+              ticketHT = inferredHT;
+              ticketTVA = inferredTVA;
+            }
+
+            aggregated.ChiffreAffaire.Total_TTC += ticketTTC;
+            aggregated.ChiffreAffaire.Total_HT += ticketHT;
+            aggregated.ChiffreAffaire.Total_TVA += ticketTVA;
             console.log(`    └─ Running totals - TTC: ${aggregated.ChiffreAffaire.Total_TTC}, HT: ${aggregated.ChiffreAffaire.Total_HT}, TVA: ${aggregated.ChiffreAffaire.Total_TVA}`);
 
             // Process payment methods
