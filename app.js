@@ -160,22 +160,32 @@ app.use('/', livestatsRoutes);
 app.use('/', authRoutes);
 app.use('/api', usersRoutes);
 
+// Setup MongoDB Change Stream for real-time updates (will be initialized after socket.io is ready)
+let changeStream = null;
 
-// const db = client.db('statistiques');
-// const collection = db.collection('TempsReels');
-// const changeStream = collection.watch();
-// changeStream.on('change', async (change) => {
-  
-//  const { documentKey ,updateDescription} = change;
-//  const response = await collection.findOne({ _id:documentKey._id });
-//  if(response!=null){ 
-  
-//   const aa = response;
-// console.log(`UpdateTempsReels${aa.IdCRM}`)
-//  io.emit(`UpdateTempsReels${aa.IdCRM}`, {  _id: documentKey._id}); 
-// //  io.emit(`UpdateTempsReelss`, {_id: documentKey._id, objectUpdate: response}); 
-// }
-// });
+app.setupRealTimeUpdates = () => {
+  if (!changeStream && app.io) {
+    const db = client.db('statistiques');
+    const collection = db.collection('TempsReels');
+    changeStream = collection.watch();
+
+    changeStream.on('change', async (change) => {
+      try {
+        const { documentKey } = change;
+        const response = await collection.findOne({ _id: documentKey._id });
+        if (response != null) {
+          const aa = response;
+          console.log(`📡 [CHANGE_STREAM] Emitting UpdateTempsReels${aa.IdCRM}`);
+          app.io.emit(`UpdateTempsReels${aa.IdCRM}`, { _id: documentKey._id });
+        }
+      } catch (error) {
+        console.error('❌ [CHANGE_STREAM] Error processing change:', error);
+      }
+    });
+
+    console.log('✅ [CHANGE_STREAM] Real-time updates initialized');
+  }
+};
 
 
 

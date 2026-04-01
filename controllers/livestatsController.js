@@ -253,6 +253,12 @@ const sendPdfInEmail = (req, res) => {
         }
       
 
+      // Emit real-time update event
+      if (req.app && req.app.io) {
+        console.log(`📡 [API_UPDATE] Emitting UpdateTempsReels${data.IdCRM} after updateLivestatForGetReglement`);
+        req.app.io.emit(`UpdateTempsReels${data.IdCRM}`, { source: 'api_update', timestamp: new Date() });
+      }
+
       res.sendStatus(200);
     } catch (error) {
       console.error(error);
@@ -286,6 +292,12 @@ const sendPdfInEmail = (req, res) => {
         await collection.insertOne(updateFields);
       }
 
+      // Emit real-time update event
+      if (req.app && req.app.io && data.length > 0) {
+        const storeId = data[0].IdCRM;
+        console.log(`📡 [API_UPDATE] Emitting UpdateTempsReels${storeId} after updateLivestat3`);
+        req.app.io.emit(`UpdateTempsReels${storeId}`, { source: 'api_update', timestamp: new Date() });
+      }
   
       res.sendStatus(200);
     } catch (error) {
