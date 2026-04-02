@@ -1209,8 +1209,8 @@ const updateStatus = async () => {
       console.log(`  ├─ idCRM: "${idCRMParam}"`);
       console.log(`  ├─ date1: "${startDateString}"`);
       console.log(`  ├─ date2: "${endDateString}"`);
-      console.log(`  ├─ startTime: "${startTime}"`);
-      console.log(`  ├─ endTime: "${endTime}"`);
+      console.log(`  ├─ startTime: "${queryStartTime}"`);
+      console.log(`  ├─ endTime: "${queryEndTime}"`);
       console.log(`  ├─ page: ${page}, limit: ${limit}`);
       
       if (!idCRMParam || !startDateString || !endDateString) {
@@ -1336,8 +1336,8 @@ const updateStatus = async () => {
       console.log(`  Final match query: ${JSON.stringify(match)}`);
       
       // timing logs of user timezone assumption vs ticket time values
-      if (startTime && endTime) {
-        console.log(`  Applying additional server-side filtering for live mode boundary check: ${startDateString} ${startTime} -> ${endDateString} ${endTime}`);
+      if (queryStartTime && queryEndTime) {
+        console.log(`  Applying additional server-side filtering for live mode boundary check: ${startDateString} ${queryStartTime} -> ${endDateString} ${queryEndTime}`);
       }
 
       pipeline.push({ $match: match });
