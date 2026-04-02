@@ -1,0 +1,43 @@
+# Node
+node_modules/
+npm-debug.log*
+.yarn-integrity
+.pnp.*
+
+# Built files
+dist/
+build/
+
+# Logs
+logs/
+*.log
+server.log
+
+# Env
+.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# Dependencies lockfile (choose one approach)
+# If you choose yarn, remove package-lock.json and keep yarn.lock
+# If you choose npm, keep package-lock.json and remove yarn.lock
+# yarn.lock
+package-lock.json
+
+# Temporary
+tmp/
+temp/
+
+# Uploads/cache
+uploads/
+public/uploads/
