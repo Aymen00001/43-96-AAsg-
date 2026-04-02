@@ -53,7 +53,23 @@ livestatsRoutes.get("/display-ticket-receipt/:idCRM/:date/:idTiquer", getTicketR
 
 // API Documentation
 livestatsRoutes.get("/help", (req, res) => {
+  // Serve updated docs by default. For backward compatibility use ?source=legacy.
+  const source = req.query.source;
+  if (source === "legacy") {
+    return res.sendFile(path.join(__dirname, '../public/api-docs.html'));
+  }
+
+  res.sendFile(path.join(__dirname, '../public/api-docs-updated.html'));
+});
+
+// Backward compatibility:
+livestatsRoutes.get("/help-legacy", (req, res) => {
   res.sendFile(path.join(__dirname, '../public/api-docs.html'));
+});
+
+// Explicit new docs endpoint:
+livestatsRoutes.get("/help-updated", (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/api-docs-updated.html'));
 });
 
 module.exports = livestatsRoutes;

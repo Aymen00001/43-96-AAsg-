@@ -509,12 +509,36 @@ const UpdateTiquer = async (req, res) => {
         const tiquerCollection = db.collection('Tiquer');
         
         console.log(`\n🔍 [${callId}] Step 2: Querying Tiquer collection...`);
-        console.log(`  Query: { IdCRM: "${idCRM}", Date: { $gte: "${startDateString}", $lte: "${endDateString}" } }`);
         
-        const tiquerData = await tiquerCollection.find({
+        // Build query with optional time filtering for live data
+        const query = {
           IdCRM: idCRM,
           Date: { $gte: startDateString, $lte: endDateString }
-        }).toArray();
+        };
+        
+        const startTime = req.query.startTime;
+        const endTime = req.query.endTime;
+        if (startTime && endTime) {
+          if (startDateString === endDateString) {
+            query.Date = startDateString;
+            query.HeureTicket = { $gt: startTime, $lte: endTime };
+          } else {
+            query.$and = [
+              { Date: { $gte: startDateString, $lte: endDateString } },
+              {
+                $or: [
+                  { Date: startDateString, HeureTicket: { $gt: startTime } },
+                  { Date: endDateString, HeureTicket: { $lte: endTime } },
+                  { Date: { $gt: startDateString, $lt: endDateString } }
+                ]
+              }
+            ];
+          }
+        }
+        
+        console.log(`  Query: ${JSON.stringify(query)}`);
+        
+        const tiquerData = await tiquerCollection.find(query).toArray();
 
         console.log(`✅ [${callId}] Tiquer query completed - retrieved ${tiquerData.length} tickets`);
         if (tiquerData.length > 0) {
@@ -1176,6 +1200,8 @@ const updateStatus = async () => {
       const idCRMParam = req.query.idCRM || '';
       const startDateString = req.query.date1;
       const endDateString = req.query.date2;
+      const queryStartTime = req.query.startTime;
+      const queryEndTime = req.query.endTime;
       const page = Math.max(parseInt(req.query.page) || 1, 1);
       const limit = Math.max(parseInt(req.query.limit) || 50, 1);
       
@@ -1183,6 +1209,8 @@ const updateStatus = async () => {
       console.log(`  ├─ idCRM: "${idCRMParam}"`);
       console.log(`  ├─ date1: "${startDateString}"`);
       console.log(`  ├─ date2: "${endDateString}"`);
+      console.log(`  ├─ startTime: "${startTime}"`);
+      console.log(`  ├─ endTime: "${endTime}"`);
       console.log(`  ├─ page: ${page}, limit: ${limit}`);
       
       if (!idCRMParam || !startDateString || !endDateString) {
@@ -1220,9 +1248,28 @@ const updateStatus = async () => {
         Date: { $gte: startDateString, $lte: endDateString }
       };
       
+      // Live mode can send start/end time to strictly filter tickets after last Z closure
+      if (queryStartTime && queryEndTime) {
+        if (startDateString === endDateString) {
+          match.Date = startDateString;
+          match.HeureTicket = { $gt: queryStartTime, $lte: queryEndTime };
+        } else {
+          match.$and = [
+            { Date: { $gte: startDateString, $lte: endDateString } },
+            {
+              $or: [
+                { Date: startDateString, HeureTicket: { $gt: queryStartTime } },
+                { Date: endDateString, HeureTicket: { $lte: queryEndTime } },
+                { Date: { $gt: startDateString, $lt: endDateString } }
+              ]
+            }
+          ];
+        }
+      }
+      
       const andConditions = [];
       
-      console.log(`  Base match query: IdCRM=${idCRM}, Date range: ${startDateString} to ${endDateString}`);
+      console.log(`  Base match query: IdCRM=${idCRM}, Date range: ${startDateString} to ${endDateString}${queryStartTime && queryEndTime ? `, Time range: ${queryStartTime} to ${queryEndTime}` : ''}`);
 
       // apply text search
       const search = req.query.search;
@@ -1288,6 +1335,11 @@ const updateStatus = async () => {
 
       console.log(`  Final match query: ${JSON.stringify(match)}`);
       
+      // timing logs of user timezone assumption vs ticket time values
+      if (startTime && endTime) {
+        console.log(`  Applying additional server-side filtering for live mode boundary check: ${startDateString} ${startTime} -> ${endDateString} ${endTime}`);
+      }
+
       pipeline.push({ $match: match });
       pipeline.push({
         $facet: {
@@ -1300,6 +1352,44 @@ const updateStatus = async () => {
       let aggResult = await tiquerCollection.aggregate(pipeline).toArray();
       let results = (aggResult[0] && aggResult[0].results) || [];
       let totalCount = (aggResult[0] && aggResult[0].totalCount[0] && aggResult[0].totalCount[0].count) || 0;
+
+      // Additional server-side filtering for live mode to avoid lexical time compare issues.
+      if (queryStartTime && queryEndTime) {
+        const parseTicketDate = (ticket) => {
+          if (!ticket || !ticket.Date || !ticket.HeureTicket) return null;
+          const dateStr = String(ticket.Date).trim();
+          const timeStr = String(ticket.HeureTicket).trim();
+          const year = Number(dateStr.slice(0, 4));
+          const month = Number(dateStr.slice(4, 6)) - 1;
+          const day = Number(dateStr.slice(6, 8));
+          let [h, m, s] = timeStr.split(':').map((v) => Number(v));
+          if (Number.isNaN(h) || Number.isNaN(m)) return null;
+          if (Number.isNaN(s)) s = 0;
+          return new Date(year, month, day, h, m, s);
+        };
+
+        const now = new Date();
+        const buildBoundaryDate = (dateStr, timeStr) => {
+          const year = Number(dateStr.slice(0, 4));
+          const month = Number(dateStr.slice(4, 6)) - 1;
+          const day = Number(dateStr.slice(6, 8));
+          let [h, m] = timeStr.split(':').map((v) => Number(v));
+          if (Number.isNaN(h) || Number.isNaN(m)) return null;
+          return new Date(year, month, day, h, m, 0);
+        };
+
+        const startBound = buildBoundaryDate(startDateString, queryStartTime);
+        const endBound = buildBoundaryDate(endDateString, queryEndTime) || now;
+
+        if (startBound && endBound) {
+          results = results.filter((ticket) => {
+            const dt = parseTicketDate(ticket);
+            if (!dt) return false;
+            return dt.getTime() > startBound.getTime() && dt.getTime() <= endBound.getTime();
+          });
+          totalCount = results.length;
+        }
+      }
 
       console.log(`✅ [${callId}] Query completed`);
       console.log(`  Results count: ${results.length}`);
@@ -2682,21 +2772,33 @@ res.send(htmlContent.replace(/undefined/g, ''));
         endDateTime = new Date(`${zDate}T${currentZ.HeureCloture}`);
       }
 
+      const startDateYMD = startDateTime.toISOString().split('T')[0].replace(/-/g, '');
+      const endDateYMD = endDateTime.toISOString().split('T')[0].replace(/-/g, '');
+      const startTime = startDateTime.toTimeString().slice(0,5); // HH:MM
+      const endTime = endDateTime.toTimeString().slice(0,5); // HH:MM
+
       console.log(`📅 [${callId}] Ticket date range: ${startDateTime.toISOString()} to ${endDateTime.toISOString()}`);
 
       // Build ticket query
       const skip = (page - 1) * limit;
+
+      // base date range and Z-time boundaries
+      const timeRangeCondition = { $or: [] };
+      if (startDateYMD === endDateYMD) {
+        timeRangeCondition.$or.push({ Date: startDateYMD, HeureTicket: { $gt: startTime, $lte: endTime } });
+      } else {
+        timeRangeCondition.$or.push({ Date: startDateYMD, HeureTicket: { $gt: startTime } });
+        timeRangeCondition.$or.push({ Date: endDateYMD, HeureTicket: { $lte: endTime } });
+        timeRangeCondition.$or.push({ Date: { $gt: startDateYMD, $lt: endDateYMD } });
+      }
+
       const match = {
         IdCRM: idCRM,
-        Date: {
-          $gte: startDateTime.toISOString().split('T')[0].replace(/-/g, ''), // Convert to YYYYMMDD format
-          $lte: endDateTime.toISOString().split('T')[0].replace(/-/g, '')    // Convert to YYYYMMDD format
-        }
+        $and: [
+          { Date: { $gte: startDateYMD, $lte: endDateYMD } },
+          timeRangeCondition
+        ]
       };
-
-      // Add time filtering (more precise than just date)
-      // Note: Since MongoDB Date fields might not include time, we'll use date range primarily
-      // and rely on the Z timestamps for logical separation
 
       console.log(`  Base match query: ${JSON.stringify(match)}`);
 
@@ -3041,6 +3143,8 @@ res.send(htmlContent.replace(/undefined/g, ''));
       const totalCount = (aggResult[0] && aggResult[0].totalCount[0] && aggResult[0].totalCount[0].count) || 0;
 
       console.log(`✅ [${callId}] Found ${totalCount} closures (${results.length} on page ${page})`);
+      console.log(`   Closures sample:
+${results.slice(0, 5).map(c => `     ID=${c.IDCloture} date=${c.Date_cloture} time=${c.HeureCloture}`).join('\n')}`);
 
       res.json({
         success: true,
