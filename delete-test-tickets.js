@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Delete all tickets with idCRM 1539874562
+ * Delete all tickets with idCRM 9999
  * Usage: node delete-test-tickets.js
  */
 
@@ -19,12 +19,12 @@ async function deleteTestTickets() {
     const db = client.db('statistiques');
     const collection = db.collection('Tiquer');
 
-    console.log('🔍 Finding tickets with idCRM: 1539874562...');
-    const query = { IdCRM: '1539874562' };
+    console.log('🔍 Finding tickets with idCRM: 9999...');
+    const query = { IdCRM: '9999' };
     const count = await collection.countDocuments(query);
 
     if (count === 0) {
-      console.log('ℹ️  No tickets found with idCRM 1539874562');
+      console.log('ℹ️  No tickets found with idCRM 9999');
       return;
     }
 
@@ -40,7 +40,7 @@ async function deleteTestTickets() {
 
     // Verify deletion
     const remaining = await collection.countDocuments(query);
-    console.log(`✔️ Verification: ${remaining} tickets remaining with idCRM 1539874562`);
+    console.log(`✔️ Verification: ${remaining} tickets remaining with idCRM 9999`);
 
   } catch (error) {
     console.error('❌ Error deleting tickets:', error.message);

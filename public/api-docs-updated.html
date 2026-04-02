@@ -906,6 +906,10 @@
   "copy_type": "Original",
   "copy_number": "1",
   "Order_number": "ORD-2026-100",
+  "customerName": "John Smith",
+  "idCommande": "CMD-20260217-100",
+  "Z": 5,
+  "status": "completed",
   "Signature": "John Customer",
   "software_version": "2.1.0",
   "CardDetails": {
@@ -1021,6 +1025,26 @@
                                 <td><span class="badge optional">No</span></td>
                             </tr>
                             <tr>
+                                <td><span class="param-name">customerName</span></td>
+                                <td><span class="param-type">string</span></td>
+                                <td><span class="badge optional">No</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="param-name">idCommande</span></td>
+                                <td><span class="param-type">string</span></td>
+                                <td><span class="badge optional">No</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="param-name">Z</span></td>
+                                <td><span class="param-type">number</span></td>
+                                <td><span class="badge optional">No</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="param-name">status</span></td>
+                                <td><span class="param-type">string</span></td>
+                                <td><span class="badge optional">No</span></td>
+                            </tr>
+                            <tr>
                                 <td><span class="param-name">CardDetails</span></td>
                                 <td><span class="param-type">object</span></td>
                                 <td><span class="badge optional">No</span></td>
@@ -1038,21 +1062,37 @@
                         </tbody>
                     </table>
 
-                    <h3 style="margin-top: 24px; margin-bottom: 12px; font-size: 14px; color: var(--text); font-weight: 600;">Totals Object Structure</h3>
-                    <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 12px;">The <code style="color: var(--accent);">Totals</code> object contains financial breakdown information:</p>
+                    <h3 style="margin-top: 24px; margin-bottom: 12px; font-size: 14px; color: var(--text); font-weight: 600;">Menu Structure (Stored as "Articles")</h3>
+                    <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 12px;">The <code style="color: var(--accent);">Menu</code> array contains individual items ordered. Each item includes product details and pricing. This data is stored in the database as the <code style="color: var(--accent);">Articles</code> field.</p>
                     <div class="code-block">
                         <pre><code class="language-json">{
-  "Totals": {
-    "Total_Ht": 45.90,
-    "Total_TVA": 5.59,
-    "Total_TTC": 51.49
-  }
+  "Menu": [
+    {
+      "name": "Grilled Chicken Sandwich",
+      "quantity": 1,
+      "unite": "pc",
+      "PrixUnitaire": 12.50,
+      "TotalArticle": 12.50,
+      "categorie": "Sandwich"
+    },
+    {
+      "name": "French Fries",
+      "quantity": 1,
+      "unite": "pc", 
+      "PrixUnitaire": 4.50,
+      "TotalArticle": 4.50,
+      "categorie": "Side"
+    }
+  ]
 }</code></pre>
                     </div>
                     <ul class="feature-list">
-                        <li><code style="color: var(--accent);">Total_Ht</code> - Subtotal (HT: Hors Taxe / before tax)</li>
-                        <li><code style="color: var(--accent);">Total_TVA</code> - Tax amount (TVA: Value Added Tax)</li>
-                        <li><code style="color: var(--accent);">Total_TTC</code> - Grand Total (TTC: Tax Inclusive Total)</li>
+                        <li><code style="color: var(--accent);">name</code> - Product name</li>
+                        <li><code style="color: var(--accent);">quantity</code> - Quantity ordered</li>
+                        <li><code style="color: var(--accent);">unite</code> - Unit of measurement (pc, kg, L, etc.)</li>
+                        <li><code style="color: var(--accent);">PrixUnitaire</code> - Unit price</li>
+                        <li><code style="color: var(--accent);">TotalArticle</code> - Total for this item (quantity × unit price)</li>
+                        <li><code style="color: var(--accent);">categorie</code> - Product category</li>
                     </ul>
 
                     <h3 style="margin-top: 24px; margin-bottom: 12px; font-size: 14px; color: var(--text); font-weight: 600;">Payment Methods Format</h3>
