@@ -115,7 +115,7 @@ For endpoints that require authentication:
 }
 ```
 
-**Status Codes:**
+**Status Codes:** 
 - `200` - Success
 - `500` - Internal server error
 
