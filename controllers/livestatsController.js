@@ -216,13 +216,9 @@ const sendPdfInEmail = (req, res) => {
       const db = await connectToDatabase();
       const collection = db.collection('livestats');
       
-      const collection2 = db.collection('TempsReels');
-      
-     
-     
-        await collection2.deleteMany({ IdCRM: data.IdCRM });
-     
-
+      // Removed: Deleting TempsReels data during payment settlement
+      // const collection2 = db.collection('TempsReels');
+      // await collection2.deleteMany({ IdCRM: data.IdCRM });
       
         const result = await collection.findOne({ IdCRM: data.IdCRM, date: data.date });
         const updateFields = {};
