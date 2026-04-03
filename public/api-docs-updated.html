@@ -658,6 +658,7 @@
                     <li><a href="#store">Store Management</a></li>
                     <li><a href="#sync">Category Synchronization</a></li>
                     <li><a href="#tickets">Ticket Display</a></li>
+                    <li><a href="#validation">Ticket Status & Data Validation</a></li>
                     <li><a href="#heartbeat">Keep-Alive Heartbeat</a></li>
                     <li><a href="#errors">Error Handling</a></li>
                     <li><a href="#examples">Code Examples</a></li>
@@ -1804,6 +1805,151 @@
                     <p class="endpoint-description">Displays detailed formatted tickets with full information breakdown.</p>
                     <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;"><strong>Deprecated:</strong> Previously <code style="color: var(--accent);">/AfficheTicket2</code></p>
                 </div>
+            </div>
+
+            <!-- Ticket Status & Data Validation -->
+            <div class="section" id="validation">
+                <h2 class="section-title">Ticket Status & Data Validation Requirements <span class="badge warning">CRITICAL</span></h2>
+                <p style="margin-bottom: 16px; color: var(--text-muted);">As of April 2026, the <code>/update-ticket</code> endpoint implements strict validation on the <code>status</code> field to prevent data corruption and ensure accurate financial reporting.</p>
+
+                <h3 style="margin-bottom: 16px; font-size: 16px; color: var(--text);">Status Field Requirements</h3>
+                <ul style="margin-bottom: 20px;">
+                    <li><strong>MUST be explicitly provided</strong> - Cannot be <code>null</code>, <code>undefined</code>, or empty string</li>
+                    <li><strong>MUST be one of:</strong> <code>"Encaiser"</code>, <code>"Annuler"</code>, or <code>"Rembourser"</code></li>
+                    <li>No default value is applied - Missing status will cause ticket to be SKIPPED during aggregation</li>
+                </ul>
+
+                <h3 style="margin-bottom: 16px; font-size: 16px; color: var(--text);">Allowed Values</h3>
+                <table style="width: 100%; margin-bottom: 20px; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: var(--secondary);">
+                            <th style="padding: 12px; text-align: left; border: 1px solid var(--border);">Status</th>
+                            <th style="padding: 12px; text-align: left; border: 1px solid var(--border);">Meaning</th>
+                            <th style="padding: 12px; text-align: left; border: 1px solid var(--border);">French</th>
+                            <th style="padding: 12px; text-align: left; border: 1px solid var(--border);">Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="padding: 12px; border: 1px solid var(--border);"><code>"Encaiser"</code></td>
+                            <td style="padding: 12px; border: 1px solid var(--border);">Collected</td>
+                            <td style="padding: 12px; border: 1px solid var(--border);">Encaissé</td>
+                            <td style="padding: 12px; border: 1px solid var(--border);">Transaction completed and paid</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 12px; border: 1px solid var(--border);"><code>"Annuler"</code></td>
+                            <td style="padding: 12px; border: 1px solid var(--border);">Cancelled</td>
+                            <td style="padding: 12px; border: 1px solid var(--border);">Annulé</td>
+                            <td style="padding: 12px; border: 1px solid var(--border);">Transaction was cancelled</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 12px; border: 1px solid var(--border);"><code>"Rembourser"</code></td>
+                            <td style="padding: 12px; border: 1px solid var(--border);">Refunded</td>
+                            <td style="padding: 12px; border: 1px solid var(--border);">Remboursé</td>
+                            <td style="padding: 12px; border: 1px solid var(--border);">Transaction was refunded to customer</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3 style="margin-bottom: 16px; font-size: 16px; color: var(--text);">Example with Status</h3>
+                <div class="code-block">
+                    <pre><code class="language-json">{
+  "IdCRM": "2435",
+  "Date": "20260403",
+  "idTiquer": "101",
+  "status": "Encaiser",    // ✅ REQUIRED - Must be explicitly set
+  "HeureTicket": "12:30",
+  "TTC": 45.50,
+  ...
+}</code></pre>
+                </div>
+
+                <h3 style="margin-bottom: 16px; font-size: 16px; color: var(--text);">Financial Data Validation (Automatic Correction)</h3>
+                <p style="margin-bottom: 16px;">The API performs automatic validation on financial fields to prevent negative tax amounts. If corrupted data is detected, it is automatically corrected:</p>
+
+                <table style="width: 100%; margin-bottom: 20px; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: var(--secondary);">
+                            <th style="padding: 12px; text-align: left; border: 1px solid var(--border);">Condition</th>
+                            <th style="padding: 12px; text-align: left; border: 1px solid var(--border);">Action</th>
+                            <th style="padding: 12px; text-align: left; border: 1px solid var(--border);">Example</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="padding: 12px; border: 1px solid var(--border);"><code>Totals.Total_HT > TTC</code></td>
+                            <td style="padding: 12px; border: 1px solid var(--border);">Uses calculated values (10% tax split)</td>
+                            <td style="padding: 12px; border: 1px solid var(--border);">HT=50, TTC=10 → Recalculated to HT=9.09, TVA=0.91</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 12px; border: 1px solid var(--border);"><code>|TTC - (HT + TVA)| > threshold</code></td>
+                            <td style="padding: 12px; border: 1px solid var(--border);">Uses calculated values (10% tax split)</td>
+                            <td style="padding: 12px; border: 1px solid var(--border);">Inconsistent totals → Recalculated with 10% VAT</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 12px; border: 1px solid var(--border);">Negative values in Totals</td>
+                            <td style="padding: 12px; border: 1px solid var(--border);">Accepted (for refunds)</td>
+                            <td style="padding: 12px; border: 1px solid var(--border);">TTC=-20, HT=-18.18, TVA=-1.82 ✅</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3 style="margin-bottom: 16px; font-size: 16px; color: var(--text);">Common Errors</h3>
+
+                <div style="margin-bottom: 20px;">
+                    <h4 style="color: var(--error); margin-bottom: 8px;">❌ Error 1: Missing Status</h4>
+                    <div class="code-block">
+                        <pre><code class="language-json">{
+  "IdCRM": "2435",
+  "Date": "20260403",
+  "idTiquer": "101",
+  // ❌ Missing "status" field
+  "TTC": 45.50
+}</code></pre>
+                    </div>
+                    <p style="color: var(--text-muted);"><strong>Result:</strong> Ticket is SKIPPED during aggregation, not counted in statistics</p>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <h4 style="color: var(--success); margin-bottom: 8px;">✅ Correct: Explicit Status</h4>
+                    <div class="code-block">
+                        <pre><code class="language-json">{
+  "IdCRM": "2435",
+  "Date": "20260403",
+  "idTiquer": "101",
+  "status": "Encaiser",  // ✅ Explicitly set
+  "TTC": 45.50
+}</code></pre>
+                    </div>
+                    <p style="color: var(--text-muted);"><strong>Result:</strong> Ticket is aggregated into sales statistics</p>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <h4 style="color: var(--error); margin-bottom: 8px;">❌ Error 2: Invalid Status Value</h4>
+                    <div class="code-block">
+                        <pre><code class="language-json">{
+  "status": "Completed",  // ❌ Not in allowed list
+}</code></pre>
+                    </div>
+                    <p style="color: var(--text-muted);"><strong>Result:</strong> Ticket is SKIPPED, unrecognized status</p>
+                </div>
+
+                <h3 style="margin-bottom: 16px; font-size: 16px; color: var(--text);">Impact on Sales Statistics</h3>
+                <p style="margin-bottom: 16px;">Tickets without valid status do <strong>NOT</strong> contribute to:</p>
+                <ul style="margin-bottom: 20px;">
+                    <li>Total Sales (TTC)</li>
+                    <li>Tax calculations</li>
+                    <li>Payment method breakdowns</li>
+                    <li>Order counts</li>
+                </ul>
+
+                <h3 style="margin-bottom: 16px; font-size: 16px; color: var(--text);">Response When Data is Corrected</h3>
+                <p style="margin-bottom: 16px;">If a ticket has invalid financial data but valid status, the API logs the correction:</p>
+                <div class="code-block">
+                    <pre><code>⚙️ Inconsistent financial totals for ticket 101: TTC=10, HT=50, TVA=5. 
+   Using inferred HT=9.09, TVA=0.91.</code></pre>
+                </div>
+                <p style="color: var(--text-muted);">The corrected values are used for aggregation, ensuring accurate statistics.</p>
             </div>
 
             <!-- Z Management -->

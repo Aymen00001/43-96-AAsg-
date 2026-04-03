@@ -623,7 +623,7 @@ const UpdateTiquer = async (req, res) => {
           // VALIDATION: Skip tickets with missing or unknown status (prevents invalid data aggregation)
           if (!normalizedStatus || normalizedStatus === 'unknown') {
             console.log(`    ⚠️  SKIPPING: Ticket has no valid status, cannot aggregate without explicit status`);
-            continue; // Skip this ticket entirely
+            return; // Skip this ticket entirely
           }
 
           const isCollected = ['encaiser', 'collected', 'paid'].includes(normalizedStatus);
@@ -642,7 +642,7 @@ const UpdateTiquer = async (req, res) => {
           } else {
             // Unrecognized status value - skip it
             console.log(`    ⚠️  SKIPPING: Unrecognized status "${rawStatus}" - not in [Encaiser, Annuler, Rembourser]`);
-            continue; // Skip this ticket
+            return; // Skip this ticket
           }
           
           // Only include revenue and details from collected tickets
