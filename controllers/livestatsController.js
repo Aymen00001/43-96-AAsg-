@@ -480,26 +480,36 @@ const UpdateTiquer = async (req, res) => {
       const db = await connectToDatabase();
       console.log(`✅ [${callId}] Database connected`);
       
-      // First try to get data from livestats collection (closure/aggregated data)
-      const livestatsCollection = db.collection('livestats');
-      console.log(`\n🔍 [${callId}] Step 1: Querying livestats collection...`);
-      console.log(`  Query: { IdCRM: "${idCRM}", date: { $gte: "${startDateString}", $lte: "${endDateString}" } }`);
-      
-      let livestats = await livestatsCollection.aggregate([
-        {
-          $match: {
-            IdCRM: idCRM,
-            date: { $gte: startDateString, $lte: endDateString }
-          }
-        },
-      ]).toArray();
+      // Determine query mode: date range only vs time clamped range
+      const startTime = req.query.startTime;
+      const endTime = req.query.endTime;
+      const useTimeFilter = Boolean(startTime && endTime);
 
-      console.log(`✅ [${callId}] livestats query completed - found ${livestats.length} records`);
-      if (livestats.length > 0) {
-        console.log(`  First record keys: ${Object.keys(livestats[0]).join(', ')}`);
+      // First try to get data from livestats collection (closure/aggregated data), but only for full-date mode
+      let livestats = [];
+      if (!useTimeFilter) {
+        const livestatsCollection = db.collection('livestats');
+        console.log(`\n🔍 [${callId}] Step 1: Querying livestats collection...`);
+        console.log(`  Query: { IdCRM: "${idCRM}", date: { $gte: "${startDateString}", $lte: "${endDateString}" } }`);
+        
+        livestats = await livestatsCollection.aggregate([
+          {
+            $match: {
+              IdCRM: idCRM,
+              date: { $gte: startDateString, $lte: endDateString }
+            }
+          }
+        ]).toArray();
+
+        console.log(`✅ [${callId}] livestats query completed - found ${livestats.length} records`);
+        if (livestats.length > 0) {
+          console.log(`  First record keys: ${Object.keys(livestats[0]).join(', ')}`);
+        }
+      } else {
+        console.log(`  Time filter mode requested: startTime=${startTime}, endTime=${endTime}. Skipping livestats collection and using Tiquer directly.`);
       }
 
-      // If livestats is empty, aggregate from Tiquer collection (live transactions)
+      // If no livestats results (or time filter requested), aggregate from Tiquer collection (live transactions)
       if (livestats.length === 0) {
         console.log(`\n⚠️  [${callId}] No closure data found, falling back to Tiquer...`);
         const tiquerCollection = db.collection('Tiquer');
@@ -1292,7 +1302,16 @@ const updateStatus = async () => {
             { idTiquer: regex },
             { idCommande: regex },
             { Signature: regex },
-            { customerName: regex }
+            { customerName: regex },
+            // Ensure numeric idTiquer values also match when query is string
+            {
+              $expr: {
+                $regexMatch: {
+                  input: { $toString: '$idTiquer' },
+                  regex: regex
+                }
+              }
+            }
           ]
         });
         console.log(`  Search filter applied: "${search}"`);
