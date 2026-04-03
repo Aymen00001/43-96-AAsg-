@@ -1347,6 +1347,8 @@ const updateStatus = async () => {
             consumptionOrConditions.push({ ConsumptionMode: /Sur\s*Place/i });
             consumptionOrConditions.push({ ConsumptionMode: /On-Site/i });
             consumptionOrConditions.push({ ConsumptionMode: /On Site/i });
+            consumptionOrConditions.push({ ConsumptionMode: /Dine\s*-?\s*In/i });
+            consumptionOrConditions.push({ ConsumptionMode: /Dine\s*In/i });
             console.log(`    → Normalized to: "Sur Place", added regex filters`);
           } else if (normalizedTarget === 'Livraison') {
             consumptionOrConditions.push({ ConsumptionMode: /Livraison/i });
