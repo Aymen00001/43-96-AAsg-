@@ -2,8 +2,8 @@
 
 **API Base URL:** `http://localhost:8002`
 
-**API Version:** 1.0  
-**Last Updated:** February 2026
+**API Version:** 1.1  
+**Last Updated:** April 2026
 
 ---
 
@@ -16,11 +16,12 @@
 5. [Email Endpoints](#email-endpoints)
 6. [Data Retrieval Endpoints](#data-retrieval-endpoints)
 7. [Payment Statistics](#payment-statistics)
-8. [Store Management Endpoints](#store-management-endpoints)
-9. [Category & Image Synchronization](#category--image-synchronization)
-10. [Ticket Display Endpoints](#ticket-display-endpoints)
-11. [Error Handling](#error-handling)
-12. [Code Examples](#code-examples)
+8. [Ticket Status & Data Validation](#ticket-status--data-validation-requirements) ⭐ **NEW**
+9. [Store Management Endpoints](#store-management-endpoints)
+10. [Category & Image Synchronization](#category--image-synchronization)
+11. [Ticket Display Endpoints](#ticket-display-endpoints)
+12. [Error Handling](#error-handling)
+13. [Code Examples](#code-examples)
 
 ---
 
@@ -447,6 +448,114 @@ All four merchant info fields are required and display with a bottom border sepa
 The ticket displays software compliance information at the very end:
 - **software_version** - Software version number (displays as: "RAMACAISSE Version logiciel : [version]")
 - TVA compliance message: "Conforme à la loi anti-fraude TVA (BOI-TVA-DECLA-30-10-30)"
+
+---
+
+### 5. Ticket Status & Data Validation Requirements
+
+**⚠️ CRITICAL: Ticket Status Field**
+
+As of April 2026, the `/update-ticket` endpoint implements strict validation on the `status` field to prevent data corruption:
+
+**Status Field Requirements:**
+- **MUST be explicitly provided** - Cannot be `null`, `undefined`, or empty string
+- **MUST be one of:** `"Encaiser"`, `"Annuler"`, or `"Rembourser"`
+- No default value is applied - Missing status will cause ticket to be SKIPPED during aggregation
+
+**Allowed Values:**
+| Status | Meaning | French | Description |
+|--------|---------|--------|-------------|
+| `Encaiser` | Collected | Encaissé | Transaction completed and paid |
+| `Annuler` | Cancelled | Annulé | Transaction was cancelled |
+| `Rembourser` | Refunded | Remboursé | Transaction was refunded to customer |
+
+**Example with Status:**
+```json
+{
+  "IdCRM": "2435",
+  "Date": "20260403",
+  "idTiquer": "101",
+  "status": "Encaiser",    // ✅ REQUIRED - Must be explicitly set
+  "HeureTicket": "12:30",
+  "TTC": 45.50,
+  ...
+}
+```
+
+**Financial Data Validation (Automatic Correction):**
+
+The API performs automatic validation on financial fields to prevent negative tax amounts. If corrupted data is detected, it is automatically corrected:
+
+| Condition | Action | Example |
+|-----------|--------|---------|
+| `Totals.Total_HT > TTC` | Uses calculated values (10% tax split) | HT=50, TTC=10 → Recalculated to HT=9.09, TV A=0.91 |
+| `\|TTC - (HT + TVA)\| > threshold` | Uses calculated values (10% tax split) | Inconsistent totals → Recalculated with 10% VAT |
+| Negative values in Totals | Accepted (for refunds) | TTC=-20, HT=-18.18, TVA=-1.82 ✅ |
+
+**Examples of Correctable Issues:**
+- Ticket has major inconsistency in Totals fields but valid status → **Corrected automatically**
+- Ticket has missing/unknown status → **Skipped entirely** (not aggregated)
+- Ticket has correct financial data but no status → **Skipped entirely** (not aggregated)
+
+**Common Errors:**
+
+❌ **Error 1: Missing Status**
+```json
+{
+  "IdCRM": "2435",
+  "Date": "20260403",
+  "idTiquer": "101",
+  // ❌ Missing "status" field
+  "TTC": 45.50
+}
+```
+Result: Ticket is SKIPPED during aggregation, not counted in statistics
+
+✅ **Correct: Explicit Status**
+```json
+{
+  "IdCRM": "2435",
+  "Date": "20260403",
+  "idTiquer": "101",
+  "status": "Encaiser",  // ✅ Explicitly set
+  "TTC": 45.50
+}
+```
+Result: Ticket is aggregated into sales statistics
+
+❌ **Error 2: Invalid Status Value**
+```json
+{
+  "status": "Completed",  // ❌ Not in allowed list
+}
+```
+Result: Ticket is SKIPPED, unrecognized status
+
+✅ **Correct: Valid Status Value**
+```json
+{
+  "status": "Encaiser",  // ✅ Valid status
+}
+```
+Result: Ticket counted as collected/paid
+
+**Impact on Sales Statistics:**
+
+Tickets without valid status do NOT contribute to:
+- Total Sales (TTC)
+- Tax calculations
+- Payment method breakdowns
+- Order counts
+
+**Response When Data is Corrected:**
+
+If a ticket has invalid financial data but valid status, the API logs the correction:
+```
+⚙️ Inconsistent financial totals for ticket 101: TTC=10, HT=50, TVA=5. 
+   Using inferred HT=9.09, TVA=0.91.
+```
+
+The corrected values are used for aggregation, ensuring accurate statistics.
 
 Example display:
 ```

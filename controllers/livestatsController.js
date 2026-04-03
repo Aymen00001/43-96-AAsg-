@@ -615,10 +615,16 @@ const UpdateTiquer = async (req, res) => {
           console.log(`    ├─ TTC: ${ticket.TTC}, HT: ${ticket.Totals?.Total_Ht}, TVA: ${ticket.Totals?.Total_TVA}`);
           console.log(`    ├─ Status: ${ticket.status}`);
           
-          // Count by ticket status
-          const rawStatus = (ticket.status || 'Encaiser').toString().trim();
+          // Count by ticket status - IMPROVED: Do NOT default unknown status to 'Encaiser'
+          const rawStatus = (ticket.status || '').toString().trim();
           const normalizedStatus = rawStatus.toLowerCase();
           console.log(`    ├─ Status counting: "${rawStatus}" (normalized: "${normalizedStatus}")`);
+
+          // VALIDATION: Skip tickets with missing or unknown status (prevents invalid data aggregation)
+          if (!normalizedStatus || normalizedStatus === 'unknown') {
+            console.log(`    ⚠️  SKIPPING: Ticket has no valid status, cannot aggregate without explicit status`);
+            continue; // Skip this ticket entirely
+          }
 
           const isCollected = ['encaiser', 'collected', 'paid'].includes(normalizedStatus);
           const isCancelled = ['annuler', 'cancelled', 'cancel', 'cancled', 'canceled'].includes(normalizedStatus);
@@ -634,9 +640,9 @@ const UpdateTiquer = async (req, res) => {
             aggregated.EtatTiquer.Rembourser++;
             console.log(`      → Counted as Rembourser (total: ${aggregated.EtatTiquer.Rembourser})`);
           } else {
-            // Unknown status, count as collected by default
-            aggregated.EtatTiquer.Encaiser++;
-            console.log(`    ⚠️  Unknown status "${rawStatus}", counted as Encaiser`);
+            // Unrecognized status value - skip it
+            console.log(`    ⚠️  SKIPPING: Unrecognized status "${rawStatus}" - not in [Encaiser, Annuler, Rembourser]`);
+            continue; // Skip this ticket
           }
           
           // Only include revenue and details from collected tickets
@@ -654,8 +660,18 @@ const UpdateTiquer = async (req, res) => {
               ticketTVA = ticketTVA / 100;
             }
 
+            // SANITY CHECK: HT should NEVER be greater than TTC (mathematically impossible)
+            // HT = price without tax, TTC = price with tax, so TTC >= HT always
+            if (ticketHT > ticketTTC) {
+              console.log(`    ❌ SANITY CHECK FAILED: HT (${ticketHT}) > TTC (${ticketTTC}) for ticket ${ticket.idTiquer}`);
+              console.log(`       This indicates corrupted data. Using inferred values instead.`);
+              const inferredHT = ticketTTC / 1.1;
+              const inferredTVA = ticketTTC - inferredHT;
+              ticketHT = inferredHT;
+              ticketTVA = inferredTVA;
+            }
             // If totals still do not align with TTC, fallback to 10% VAT split from TTC
-            if (ticketTTC > 0 && Math.abs(ticketTTC - (ticketHT + ticketTVA)) > Math.max(0.05, ticketTTC * 0.03)) {
+            else if (ticketTTC > 0 && Math.abs(ticketTTC - (ticketHT + ticketTVA)) > Math.max(0.05, ticketTTC * 0.03)) {
               const inferredHT = ticketTTC / 1.1;
               const inferredTVA = ticketTTC - inferredHT;
               console.log(`    ⚙️  Inconsistent financial totals for ticket ${ticket.idTiquer}: TTC=${ticketTTC}, HT=${ticketHT}, TVA=${ticketTVA}. Using inferred HT=${inferredHT.toFixed(3)}, TVA=${inferredTVA.toFixed(3)}.`);
